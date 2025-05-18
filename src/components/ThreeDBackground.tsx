@@ -16,6 +16,7 @@ interface ParticlePosition {
 }
 
 const Particles: React.FC<ParticleProps> = ({ count = 1000, color = "#8B5CF6" }) => {
+  // Fix: Use the correct type for the instancedMesh ref
   const mesh = useRef<THREE.InstancedMesh>(null);
   const particles = useRef<ParticlePosition[]>([]);
   
@@ -78,7 +79,10 @@ const Particles: React.FC<ParticleProps> = ({ count = 1000, color = "#8B5CF6" })
   });
   
   return (
-    <instancedMesh ref={mesh} args={[undefined, undefined, count]}>
+    <instancedMesh 
+      ref={mesh as any} 
+      args={[undefined, undefined, count]}
+    >
       <sphereGeometry args={[0.5, 8, 8]} />
       <meshBasicMaterial color={color} transparent opacity={0.6} />
     </instancedMesh>
@@ -86,6 +90,7 @@ const Particles: React.FC<ParticleProps> = ({ count = 1000, color = "#8B5CF6" })
 };
 
 const GradientSphere = () => {
+  // Fix: Use the correct type for the mesh ref
   const mesh = useRef<THREE.Mesh>(null);
   
   useFrame(({ clock }) => {
@@ -96,7 +101,10 @@ const GradientSphere = () => {
   });
   
   return (
-    <Sphere args={[8, 64, 64]} ref={mesh}>
+    <Sphere 
+      args={[8, 64, 64]} 
+      ref={mesh as any}
+    >
       <meshBasicMaterial color="#4F46E5" wireframe opacity={0.2} transparent />
     </Sphere>
   );
