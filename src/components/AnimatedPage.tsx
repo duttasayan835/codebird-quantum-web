@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { motion } from "framer-motion";
 
 interface AnimatedPageProps {
@@ -28,6 +28,11 @@ const pageTransition = {
 };
 
 const AnimatedPage: React.FC<AnimatedPageProps> = ({ children }) => {
+  useEffect(() => {
+    // Scroll to top on page change
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <motion.div
       initial="initial"

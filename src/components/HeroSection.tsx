@@ -2,11 +2,36 @@
 import React, { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
+import { gsap } from "gsap";
 
 const HeroSection = () => {
   const heroRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLHeadingElement>(null);
   
   useEffect(() => {
+    // GSAP text animation
+    if (textRef.current) {
+      const text = textRef.current;
+      
+      gsap.fromTo(
+        text.querySelectorAll('.hero-letter'),
+        {
+          opacity: 0,
+          y: 20,
+          rotateX: -90,
+        },
+        {
+          opacity: 1,
+          y: 0,
+          rotateX: 0,
+          stagger: 0.05,
+          duration: 0.8,
+          ease: "back.out(1.7)",
+        }
+      );
+    }
+    
     const handleMouseMove = (e: MouseEvent) => {
       if (!heroRef.current) return;
       
@@ -57,49 +82,88 @@ const HeroSection = () => {
       ></div>
       
       {/* Tech elements */}
-      <div 
+      <motion.div 
         className="floating-element absolute top-[20%] left-[15%] w-20 h-20 glass-card flex items-center justify-center animate-float"
         data-depth="0.06"
+        initial={{ scale: 0, rotate: -180 }}
+        animate={{ scale: 1, rotate: 0 }}
+        transition={{ duration: 0.6, delay: 0.4, type: "spring" }}
       >
         <span className="text-4xl font-mono">{"{"}</span>
-      </div>
-      <div 
+      </motion.div>
+      <motion.div 
         className="floating-element absolute bottom-[25%] right-[15%] w-16 h-16 glass-card flex items-center justify-center animate-float"
         data-depth="0.07"
         style={{animationDelay: "-1s"}}
+        initial={{ scale: 0, rotate: 180 }}
+        animate={{ scale: 1, rotate: 0 }}
+        transition={{ duration: 0.6, delay: 0.7, type: "spring" }}
       >
         <span className="text-3xl font-mono">{"<>"}</span>
-      </div>
-      <div 
+      </motion.div>
+      <motion.div 
         className="floating-element absolute top-[60%] left-[25%] w-12 h-12 glass-card flex items-center justify-center animate-float"
         data-depth="0.08"
         style={{animationDelay: "-0.5s"}}
+        initial={{ scale: 0, rotate: -90 }}
+        animate={{ scale: 1, rotate: 0 }}
+        transition={{ duration: 0.6, delay: 0.6, type: "spring" }}
       >
         <span className="text-2xl font-mono">#</span>
-      </div>
-      <div 
+      </motion.div>
+      <motion.div 
         className="floating-element absolute top-[30%] right-[28%] w-14 h-14 glass-card flex items-center justify-center animate-float"
         data-depth="0.05"
         style={{animationDelay: "-1.5s"}}
+        initial={{ scale: 0, rotate: 90 }}
+        animate={{ scale: 1, rotate: 0 }}
+        transition={{ duration: 0.6, delay: 0.5, type: "spring" }}
       >
         <span className="text-2xl font-mono">()</span>
-      </div>
+      </motion.div>
       
       {/* Main content */}
-      <div className="container mx-auto px-4 z-10">
+      <div className="container mx-auto px-4 z-10 relative">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 animate-fade-in">
-            <span className="text-gradient glow">THE Codebird Club</span>
+          <h1 
+            ref={textRef}
+            className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6"
+          >
+            <span className="inline-block overflow-hidden">
+              {Array.from("THE Codebird Club").map((letter, i) => (
+                <span 
+                  key={i} 
+                  className={`hero-letter inline-block ${
+                    letter === " " ? "mr-2" : ""
+                  }`}
+                >
+                  {letter}
+                </span>
+              ))}
+            </span>
           </h1>
-          <p className="text-xl md:text-2xl text-foreground/80 mb-10 animate-fade-in" style={{animationDelay: "0.2s"}}>
+          
+          <motion.p 
+            className="text-xl md:text-2xl text-foreground/80 mb-10"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 1.2 }}
+          >
             Where developers soar beyond limitations through community, innovation, and cutting-edge technology.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 animate-fade-in" style={{animationDelay: "0.4s"}}>
+          </motion.p>
+          
+          <motion.div 
+            className="flex flex-col sm:flex-row items-center justify-center gap-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 1.5 }}
+          >
             <Link
               to="/join"
-              className="px-8 py-3 bg-primary hover:bg-primary/90 rounded-full text-white transition-all shadow-lg hover:shadow-primary/40 text-lg flex items-center gap-2"
+              className="px-8 py-3 bg-primary hover:bg-primary/90 rounded-full text-white transition-all shadow-lg hover:shadow-primary/40 text-lg flex items-center gap-2 group"
             >
-              Join the Club <ArrowRight size={18} />
+              Join the Club{" "}
+              <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
             </Link>
             <Link
               to="/projects"
@@ -107,16 +171,31 @@ const HeroSection = () => {
             >
               Explore Projects
             </Link>
-          </div>
+          </motion.div>
         </div>
       </div>
       
       {/* Scroll indicator */}
-      <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2">
+      <motion.div 
+        className="absolute bottom-10 left-1/2 transform -translate-x-1/2"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 2, duration: 1 }}
+      >
         <div className="w-6 h-10 border-2 border-foreground/30 rounded-full flex justify-center">
-          <div className="w-1.5 h-3 bg-foreground/50 rounded-full mt-2 animate-[bounce_1.5s_infinite]"></div>
+          <motion.div 
+            className="w-1.5 h-3 bg-foreground/50 rounded-full mt-2"
+            animate={{ 
+              y: [0, 10, 0],
+            }}
+            transition={{
+              repeat: Infinity,
+              duration: 1.5,
+              ease: "easeInOut"
+            }}
+          ></motion.div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };
