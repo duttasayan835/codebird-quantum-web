@@ -9,9 +9,15 @@ interface ParticleProps {
   color?: string;
 }
 
+interface ParticlePosition {
+  x: number;
+  y: number;
+  z: number;
+}
+
 const Particles: React.FC<ParticleProps> = ({ count = 1000, color = "#8B5CF6" }) => {
   const mesh = useRef<THREE.InstancedMesh>(null);
-  const particles = useRef<THREE.Object3D[]>([]);
+  const particles = useRef<ParticlePosition[]>([]);
   
   useEffect(() => {
     // Initialize particles
@@ -33,7 +39,11 @@ const Particles: React.FC<ParticleProps> = ({ count = 1000, color = "#8B5CF6" })
         
         temp.updateMatrix();
         mesh.current.setMatrixAt(i, temp.matrix);
-        particles.current.push({ ...temp.position });
+        particles.current.push({ 
+          x: temp.position.x, 
+          y: temp.position.y, 
+          z: temp.position.z 
+        });
       }
       
       mesh.current.instanceMatrix.needsUpdate = true;
@@ -86,7 +96,7 @@ const GradientSphere = () => {
   });
   
   return (
-    <Sphere ref={mesh} args={[8, 64, 64]}>
+    <Sphere args={[8, 64, 64]} ref={mesh}>
       <meshBasicMaterial color="#4F46E5" wireframe opacity={0.2} transparent />
     </Sphere>
   );

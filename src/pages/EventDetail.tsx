@@ -1,103 +1,113 @@
 
 import React from "react";
-import { useParams, Link } from "react-router-dom";
 import AnimatedPage from "../components/AnimatedPage";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, MapPin, Users, ArrowLeft } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { CalendarIcon, MapPinIcon, UsersIcon, ClockIcon } from "lucide-react";
+import { useParams } from "react-router-dom";
 
 const EventDetail = () => {
   const { id } = useParams();
   
-  // Mock data - in a real app, you would fetch this data based on the ID
+  // Mock event data (in a real app, you would fetch this from an API)
   const event = {
-    id: Number(id),
-    title: "CodeBird Annual Conference",
-    date: "June 15-17, 2023",
-    location: "Moscone Center, San Francisco, CA",
-    time: "9:00 AM - 5:00 PM",
-    category: "Conference",
-    description: "Join us for our flagship annual conference where we'll explore the latest trends in web development, design systems, artificial intelligence, and more. Connect with industry leaders and fellow developers in this 3-day event packed with workshops, talks, and networking opportunities.",
+    id: id,
+    title: "CodeBird Society Annual Hackathon",
+    date: "2023-11-15",
+    time: "09:00 - 21:00",
+    location: "Tech Hub, 123 Innovation Street",
+    image: "https://images.unsplash.com/photo-1515169067868-5387ec356754?auto=format&fit=crop&q=80&w=1470&ixlib=rb-4.0.3",
+    description: "Join us for our annual 24-hour hackathon where developers, designers, and tech enthusiasts come together to build innovative solutions to real-world problems. This year's theme is 'Technology for Social Good'.",
+    attendees: 120,
+    categories: ["Hackathon", "Coding", "Networking"],
     speakers: [
-      { name: "Alex Johnson", topic: "The Future of Web Development" },
-      { name: "Samantha Lee", topic: "Building Accessible Design Systems" },
-      { name: "Marcus Chen", topic: "AI-Powered Development Workflows" },
-      { name: "Priya Patel", topic: "Performance Optimization Strategies" }
-    ],
-    attendees: 350
+      {
+        name: "Jane Smith",
+        role: "CTO at TechStart",
+        topic: "Building Scalable Solutions"
+      },
+      {
+        name: "John Doe",
+        role: "Lead Developer at CodeCorp",
+        topic: "Working with AI APIs"
+      }
+    ]
   };
-
+  
   return (
     <AnimatedPage>
       <div className="container mx-auto px-4 py-16">
-        <Link to="/events" className="flex items-center gap-2 text-primary hover:underline mb-8">
-          <ArrowLeft size={16} />
-          Back to all events
-        </Link>
-        
-        <div className="max-w-4xl mx-auto">
-          <motion.div 
-            className="mb-8"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-              <h1 className="text-4xl font-bold">{event.title}</h1>
-              <Badge size="lg" className="text-sm px-3 py-1">{event.category}</Badge>
+        <motion.div 
+          className="max-w-4xl mx-auto"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="mb-6 flex items-center gap-2">
+            {event.categories.map((category, index) => (
+              <Badge key={index} variant="outline" className="text-sm">
+                {category}
+              </Badge>
+            ))}
+          </div>
+          
+          <h1 className="text-4xl font-bold mb-4">{event.title}</h1>
+          
+          <div className="aspect-video w-full mb-8 overflow-hidden rounded-lg">
+            <img src={event.image} alt={event.title} className="w-full h-full object-cover" />
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="flex items-center">
+              <CalendarIcon className="h-5 w-5 mr-2 text-primary" />
+              <span>{event.date}</span>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="flex items-center gap-2">
-                <Calendar size={20} className="text-primary" />
-                <span>{event.date}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Clock size={20} className="text-primary" />
-                <span>{event.time}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Users size={20} className="text-primary" />
-                <span>{event.attendees} Attendees</span>
-              </div>
+            <div className="flex items-center">
+              <ClockIcon className="h-5 w-5 mr-2 text-primary" />
+              <span>{event.time}</span>
             </div>
             
-            <div className="flex items-center gap-2 mb-8">
-              <MapPin size={20} className="text-primary" />
+            <div className="flex items-center">
+              <MapPinIcon className="h-5 w-5 mr-2 text-primary" />
               <span>{event.location}</span>
             </div>
-          </motion.div>
+          </div>
           
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <Card className="p-6 mb-8">
-              <h2 className="text-2xl font-semibold mb-4">About this event</h2>
-              <p className="mb-6">{event.description}</p>
-              <Button size="lg">Register Now</Button>
-            </Card>
+          <div className="bg-card rounded-lg p-6 mb-8">
+            <h2 className="text-xl font-semibold mb-4">About This Event</h2>
+            <p className="mb-4">{event.description}</p>
             
-            <h2 className="text-2xl font-semibold mb-4">Featured Speakers</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+            <div className="flex items-center text-sm text-muted-foreground">
+              <UsersIcon className="h-4 w-4 mr-1" />
+              <span>{event.attendees} attendees</span>
+            </div>
+          </div>
+          
+          <div className="bg-card rounded-lg p-6 mb-8">
+            <h2 className="text-xl font-semibold mb-4">Featured Speakers</h2>
+            <div className="space-y-4">
               {event.speakers.map((speaker, index) => (
-                <motion.div
-                  key={speaker.name}
-                  className="p-4 border rounded-md"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3, delay: 0.1 * index }}
-                >
-                  <h3 className="font-semibold">{speaker.name}</h3>
-                  <p className="text-muted-foreground">{speaker.topic}</p>
-                </motion.div>
+                <div key={index} className="flex items-start">
+                  <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center mr-3">
+                    <span className="font-medium text-primary">{speaker.name.charAt(0)}</span>
+                  </div>
+                  <div>
+                    <h3 className="font-medium">{speaker.name}</h3>
+                    <p className="text-sm text-muted-foreground">{speaker.role}</p>
+                    <p className="text-sm">{speaker.topic}</p>
+                  </div>
+                </div>
               ))}
             </div>
-          </motion.div>
-        </div>
+          </div>
+          
+          <div className="flex justify-center">
+            <Button size="lg" className="mr-4">Register Now</Button>
+            <Button variant="outline" size="lg">Add to Calendar</Button>
+          </div>
+        </motion.div>
       </div>
     </AnimatedPage>
   );
