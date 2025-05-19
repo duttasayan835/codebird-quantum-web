@@ -3,9 +3,11 @@ import React from "react";
 import { Button as ShadcnButton } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Link } from "react-router-dom";
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonLinkProps {
   children: React.ReactNode;
+  to: string;
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
   size?: "default" | "sm" | "lg" | "icon";
   isLoading?: boolean;
@@ -13,14 +15,13 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   fullWidth?: boolean;
-  as?: "a";
-  href?: string;
-  target?: string;
-  rel?: string;
+  className?: string;
+  external?: boolean;
 }
 
-const Button: React.FC<ButtonProps> = ({
+const ButtonLink: React.FC<ButtonLinkProps> = ({
   children,
+  to,
   variant = "default",
   size = "default",
   isLoading = false,
@@ -29,10 +30,7 @@ const Button: React.FC<ButtonProps> = ({
   leftIcon,
   rightIcon,
   fullWidth = false,
-  as,
-  href,
-  target,
-  rel,
+  external = false,
   ...props
 }) => {
   const buttonContent = (
@@ -44,23 +42,23 @@ const Button: React.FC<ButtonProps> = ({
     </>
   );
 
-  const buttonClassName = cn(
+  const buttonClasses = cn(
     "relative flex items-center justify-center gap-2 transition-all",
     fullWidth && "w-full",
     className
   );
 
-  // Handle <a> tag rendering
-  if (as === "a" && href) {
+  if (external) {
     return (
       <ShadcnButton
         variant={variant}
         size={size}
-        className={buttonClassName}
+        className={buttonClasses}
+        disabled={isLoading}
         asChild
         {...props}
       >
-        <a href={href} target={target} rel={rel}>
+        <a href={to} target="_blank" rel="noopener noreferrer">
           {buttonContent}
         </a>
       </ShadcnButton>
@@ -71,13 +69,16 @@ const Button: React.FC<ButtonProps> = ({
     <ShadcnButton
       variant={variant}
       size={size}
-      className={buttonClassName}
-      disabled={props.disabled || isLoading}
+      className={buttonClasses}
+      disabled={isLoading}
+      asChild
       {...props}
     >
-      {buttonContent}
+      <Link to={to}>
+        {buttonContent}
+      </Link>
     </ShadcnButton>
   );
 };
 
-export default Button;
+export default ButtonLink;

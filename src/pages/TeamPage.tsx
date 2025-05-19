@@ -1,180 +1,223 @@
-
-import React from "react";
+import React, { useState } from "react";
+import AnimatedPage from "@/components/AnimatedPage";
 import { motion } from "framer-motion";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
-import AnimatedPage from "../components/AnimatedPage";
-import { Github, Linkedin, ExternalLink } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Github, Linkedin, Quote } from "lucide-react";
+import Button from "@/components/atoms/Button";
+import ButtonLink from "@/components/atoms/ButtonLink";
 
-const teamMembers = [
+interface TeamMember {
+  id: number;
+  name: string;
+  role: string;
+  bio: string;
+  quote: string;
+  avatar: string;
+  github: string;
+  linkedin: string;
+}
+
+const teamMembers: TeamMember[] = [
   {
     id: 1,
-    name: "Alex Chen",
-    role: "Founder & CEO",
-    bio: "Visionary technologist with 15+ years of experience in building innovative software solutions and fostering developer communities.",
-    image: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1770&q=80",
-    github: "https://github.com",
-    linkedin: "https://linkedin.com",
-    website: "https://example.com"
+    name: "Alex Johnson",
+    role: "Frontend Lead",
+    bio: "Alex has over 8 years of experience in frontend development, specializing in React and modern JavaScript frameworks.",
+    quote: "The best code is no code at all.",
+    avatar: "https://i.pravatar.cc/150?img=11",
+    github: "https://github.com/alexj",
+    linkedin: "https://linkedin.com/in/alexj"
   },
   {
     id: 2,
-    name: "Sarah Johnson",
-    role: "CTO",
-    bio: "Full-stack engineer specializing in scalable architecture and emerging technologies with a passion for open-source contribution.",
-    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1774&q=80",
-    github: "https://github.com",
-    linkedin: "https://linkedin.com",
-    website: "https://example.com"
+    name: "Jamie Smith",
+    role: "Backend Developer",
+    bio: "Jamie specializes in building scalable backend services using Node.js and Python.",
+    quote: "Simple solutions to complex problems.",
+    avatar: "https://i.pravatar.cc/150?img=12",
+    github: "https://github.com/jamies",
+    linkedin: "https://linkedin.com/in/jamies"
   },
   {
     id: 3,
-    name: "Michael Zhang",
-    role: "Head of Development",
-    bio: "Expert in React ecosystem and performance optimization. Previously led development teams at several successful tech startups.",
-    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1774&q=80",
-    github: "https://github.com",
-    linkedin: "https://linkedin.com",
-    website: null
+    name: "Taylor Williams",
+    role: "UI/UX Designer",
+    bio: "Taylor brings designs to life with a focus on accessibility and user experience.",
+    quote: "Design is not just what it looks like, it's how it works.",
+    avatar: "https://i.pravatar.cc/150?img=13",
+    github: "https://github.com/taylorw",
+    linkedin: "https://linkedin.com/in/taylorw"
   },
   {
     id: 4,
-    name: "Emily Rodriguez",
-    role: "Lead Designer",
-    bio: "Award-winning designer focused on creating innovative, accessible user experiences and digital brand identities.",
-    image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1776&q=80",
-    github: "https://github.com",
-    linkedin: "https://linkedin.com",
-    website: "https://example.com"
+    name: "Morgan Lee",
+    role: "Full Stack Developer",
+    bio: "Morgan is a versatile developer who handles everything from database design to frontend implementation.",
+    quote: "Code is like humor. When you have to explain it, it's bad.",
+    avatar: "https://i.pravatar.cc/150?img=14",
+    github: "https://github.com/morganl",
+    linkedin: "https://linkedin.com/in/morganl"
   },
   {
     id: 5,
-    name: "David Kim",
-    role: "Community Manager",
-    bio: "Developer advocate and community builder with experience organizing tech conferences and fostering inclusive development environments.",
-    image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1770&q=80",
-    github: "https://github.com",
-    linkedin: "https://linkedin.com",
-    website: null
+    name: "Casey Rivera",
+    role: "DevOps Engineer",
+    bio: "Casey ensures smooth deployments and maintains our cloud infrastructure.",
+    quote: "Automate everything that can be automated.",
+    avatar: "https://i.pravatar.cc/150?img=15",
+    github: "https://github.com/caseyr",
+    linkedin: "https://linkedin.com/in/caseyr"
   },
   {
     id: 6,
-    name: "Jasmine Lee",
-    role: "Education Director",
-    bio: "Former university professor with expertise in computer science education and curriculum development for diverse learning styles.",
-    image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1722&q=80",
-    github: "https://github.com",
-    linkedin: "https://linkedin.com",
-    website: "https://example.com"
+    name: "Jordan Patel",
+    role: "QA Specialist",
+    bio: "Jordan is passionate about software quality and automated testing.",
+    quote: "If debugging is the process of removing bugs, programming must be the process of putting them in.",
+    avatar: "https://i.pravatar.cc/150?img=16",
+    github: "https://github.com/jordanp",
+    linkedin: "https://linkedin.com/in/jordanp"
   }
 ];
 
 const TeamPage = () => {
+  const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  const openModal = (member: TeamMember) => {
+    setSelectedMember(member);
+    setIsModalOpen(true);
+  };
+
   return (
     <AnimatedPage>
       <Navbar />
-      <main className="pt-32 pb-20">
-        <div className="container mx-auto px-4">
-          <motion.h1 
-            className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-gradient"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            Our Team
-          </motion.h1>
-          
-          <motion.p 
-            className="text-xl text-foreground/70 max-w-3xl mb-12"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            Meet the passionate individuals behind Codebird Club who are dedicated to 
-            empowering developers and fostering an innovative community.
-          </motion.p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {teamMembers.map((member, index) => (
-              <motion.div
-                key={member.id}
-                className="glass-card overflow-hidden"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 + index * 0.1 }}
-                whileHover={{ y: -5, transition: { duration: 0.2 } }}
-              >
-                <div className="relative h-64 overflow-hidden">
-                  <img 
-                    src={member.image} 
-                    alt={member.name} 
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent opacity-70"></div>
-                </div>
-                
-                <div className="p-6">
-                  <h2 className="text-2xl font-bold mb-1">{member.name}</h2>
-                  <p className="text-primary mb-4">{member.role}</p>
-                  
-                  <p className="text-foreground/70 mb-6">
-                    {member.bio}
-                  </p>
-                  
-                  <div className="flex gap-3">
-                    <a 
-                      href={member.github} 
-                      className="p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <Github size={18} />
-                    </a>
-                    <a 
-                      href={member.linkedin} 
-                      className="p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <Linkedin size={18} />
-                    </a>
-                    {member.website && (
-                      <a 
-                        href={member.website} 
-                        className="p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        <ExternalLink size={18} />
-                      </a>
-                    )}
+      <div className="container mx-auto px-4 py-16">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-12"
+        >
+          <h1 className="text-4xl font-bold">Our Team</h1>
+          <p className="mt-4 text-lg max-w-2xl mx-auto">
+            Meet the talented individuals behind Codebird Club who make everything possible.
+          </p>
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {teamMembers.map((member, index) => (
+            <motion.div
+              key={member.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 * index }}
+            >
+              <Card className="overflow-hidden h-full flex flex-col bg-black/40 backdrop-blur-lg border border-white/10 hover:shadow-lg hover:shadow-primary/20 transition-all">
+                <div className="relative overflow-hidden aspect-[4/3]">
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    transition={{ duration: 0.3 }}
+                    className="h-full w-full"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10" />
+                    <div 
+                      className="h-full w-full bg-cover bg-center"
+                      style={{ backgroundImage: `url(${member.avatar})` }}
+                    />
+                  </motion.div>
+                  <div className="absolute bottom-4 left-4 z-20">
+                    <Avatar className="h-16 w-16 border-2 border-white">
+                      <AvatarImage src={member.avatar} alt={member.name} />
+                      <AvatarFallback>{member.name.substring(0, 2)}</AvatarFallback>
+                    </Avatar>
                   </div>
                 </div>
-              </motion.div>
-            ))}
-          </div>
-          
-          <motion.div 
-            className="mt-20 glass-card p-8 text-center"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8 }}
-          >
-            <h2 className="text-2xl font-bold mb-4">Join Our Team</h2>
-            <p className="text-foreground/70 max-w-2xl mx-auto mb-6">
-              We're always looking for passionate individuals to join our mission of empowering 
-              developers and creating an innovative community. Check out our open positions and 
-              contribute to the future of tech.
-            </p>
-            <a
-              href="/join"
-              className="inline-block px-8 py-3 bg-primary hover:bg-primary/90 rounded-full text-white transition-all shadow-lg hover:shadow-primary/40"
-            >
-              View Open Positions
-            </a>
-          </motion.div>
+                
+                <CardContent className="pt-6 flex-grow">
+                  <h2 className="text-xl font-semibold">{member.name}</h2>
+                  <p className="text-sm text-muted-foreground mb-4">{member.role}</p>
+                  <div className="flex items-center mb-4">
+                    <Quote size={16} className="text-primary mr-2 flex-shrink-0" />
+                    <p className="text-sm italic text-muted-foreground">"{member.quote}"</p>
+                  </div>
+                </CardContent>
+                
+                <CardFooter className="flex justify-between border-t border-white/10 pt-4">
+                  <div className="flex space-x-2">
+                    <Button size="sm" variant="ghost" as="a" href={member.github} target="_blank" rel="noopener noreferrer">
+                      <Github size={16} />
+                    </Button>
+                    <Button size="sm" variant="ghost" as="a" href={member.linkedin} target="_blank" rel="noopener noreferrer">
+                      <Linkedin size={16} />
+                    </Button>
+                  </div>
+                  <Button size="sm" onClick={() => openModal(member)}>Details</Button>
+                </CardFooter>
+              </Card>
+            </motion.div>
+          ))}
         </div>
-      </main>
+      </div>
+
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        {selectedMember && (
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="text-2xl">{selectedMember.name}</DialogTitle>
+              <DialogDescription className="text-primary">{selectedMember.role}</DialogDescription>
+            </DialogHeader>
+            <div className="mt-4">
+              <div className="flex items-start space-x-4">
+                <Avatar className="h-24 w-24">
+                  <AvatarImage src={selectedMember.avatar} alt={selectedMember.name} />
+                  <AvatarFallback>{selectedMember.name.substring(0, 2)}</AvatarFallback>
+                </Avatar>
+                <div className="space-y-4">
+                  <p>{selectedMember.bio}</p>
+                  <div className="flex items-center">
+                    <Quote size={20} className="text-primary mr-2 flex-shrink-0" />
+                    <p className="italic">"{selectedMember.quote}"</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mt-6 flex space-x-4">
+                <Button
+                  leftIcon={<Github />}
+                  as="a"
+                  href={selectedMember.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  GitHub Profile
+                </Button>
+                <Button
+                  leftIcon={<Linkedin />}
+                  variant="outline"
+                  as="a"
+                  href={selectedMember.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  LinkedIn Profile
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        )}
+      </Dialog>
+
       <Footer />
     </AnimatedPage>
   );
