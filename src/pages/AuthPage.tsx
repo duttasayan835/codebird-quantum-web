@@ -10,7 +10,7 @@ import Button from "@/components/atoms/Button";
 import TextField from "@/components/atoms/TextField";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Mail, Lock, Github, LucideGithub, LucideGoogle } from "lucide-react";
+import { Mail, Lock, Github } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { motion } from "framer-motion";
@@ -275,7 +275,20 @@ const AuthPage: React.FC = () => {
                   GitHub
                 </Button>
                 <Button variant="outline" type="button" disabled={true}>
-                  <LucideGoogle className="mr-2 h-4 w-4" />
+                  <svg
+                    className="mr-2 h-4 w-4"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M1.42 6.357l3.244 1.946c.307-1.075.652-2.057 1.03-2.942m16.886 0A12.09 12.09 0 0 1 24 9a12.09 12.09 0 0 1-1.42 5.639l-3.244-1.946a7.16 7.16 0 0 0 .844-3.693 7.16 7.16 0 0 0-.844-3.693M3 9a6 6 0 0 0 6 6v-3H5.4A1.4 1.4 0 0 1 4 10.6V7.4A1.4 1.4 0 0 1 5.4 6H9V3a6 6 0 0 0-6 6m18 0a6 6 0 0 0-6-6v3h3.6A1.4 1.4 0 0 1 20 7.4v3.2a1.4 1.4 0 0 1-1.4 1.4H15v3a6 6 0 0 0 6-6" />
+                  </svg>
                   Google
                 </Button>
               </div>
