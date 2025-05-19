@@ -1,346 +1,226 @@
 
 import React, { useState } from "react";
-import AnimatedPage from "@/components/AnimatedPage";
-import { motion } from "framer-motion";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import AnimatedPage from "../components/AnimatedPage";
+import { motion, AnimatePresence } from "framer-motion";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Toggle } from "@/components/ui/toggle";
-import { Link } from "react-router-dom";
-import { 
-  FileText, BookOpen, Award, Download, 
-  GridIcon, List, Grid2x2, Grid3x3, 
-  ExternalLink, Clock, ArrowRight 
-} from "lucide-react";
-import Button from "@/components/atoms/Button";
-
-type ResourceType = "roadmap" | "pdf" | "challenge" | "video";
-
-interface Resource {
-  id: string;
-  title: string;
-  description: string;
-  type: ResourceType;
-  url: string;
-  thumbnail: string;
-  downloadable: boolean;
-  duration?: string;
-  difficulty?: "beginner" | "intermediate" | "advanced";
-}
-
-const resources: Resource[] = [
-  {
-    id: "1",
-    title: "Frontend Development Roadmap",
-    description: "A comprehensive guide to becoming a frontend developer in 2025.",
-    type: "roadmap",
-    url: "/resources/frontend-roadmap",
-    thumbnail: "https://images.unsplash.com/photo-1587620962725-abab7fe55159?q=80&w=2574&auto=format&fit=crop",
-    downloadable: true
-  },
-  {
-    id: "2",
-    title: "Backend Development Roadmap",
-    description: "Step-by-step path to becoming a backend developer in 2025.",
-    type: "roadmap",
-    url: "/resources/backend-roadmap",
-    thumbnail: "https://images.unsplash.com/photo-1596986104852-7a5b6b13b970?q=80&w=2574&auto=format&fit=crop",
-    downloadable: true
-  },
-  {
-    id: "3",
-    title: "Modern JavaScript Guide",
-    description: "A comprehensive PDF guide to modern JavaScript features and best practices.",
-    type: "pdf",
-    url: "/resources/js-guide.pdf",
-    thumbnail: "https://images.unsplash.com/photo-1579468118864-1b9ea3c0db4a?q=80&w=2670&auto=format&fit=crop",
-    downloadable: true
-  },
-  {
-    id: "4",
-    title: "React Performance Optimization",
-    description: "Learn techniques for optimizing the performance of your React applications.",
-    type: "pdf",
-    url: "/resources/react-performance.pdf",
-    thumbnail: "https://images.unsplash.com/photo-1633356122102-3fe601e05bd2?q=80&w=2670&auto=format&fit=crop",
-    downloadable: true
-  },
-  {
-    id: "5",
-    title: "Algorithm Challenges Bundle",
-    description: "A collection of 50 algorithm challenges to improve your problem-solving skills.",
-    type: "challenge",
-    url: "/resources/challenges/algorithms",
-    thumbnail: "https://images.unsplash.com/photo-1580894732444-8ecded7900cd?q=80&w=2670&auto=format&fit=crop",
-    downloadable: false,
-    difficulty: "intermediate"
-  },
-  {
-    id: "6",
-    title: "CSS Layout Masterclass",
-    description: "Master CSS layouts with these interactive challenges and examples.",
-    type: "challenge",
-    url: "/resources/challenges/css-layout",
-    thumbnail: "https://images.unsplash.com/photo-1507721999472-8ed4421c4af2?q=80&w=2670&auto=format&fit=crop",
-    downloadable: false,
-    difficulty: "beginner"
-  },
-  {
-    id: "7",
-    title: "GraphQL Fundamentals",
-    description: "Learn the basics of GraphQL and how to implement it in your applications.",
-    type: "video",
-    url: "/resources/videos/graphql",
-    thumbnail: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=2670&auto=format&fit=crop",
-    downloadable: false,
-    duration: "1h 45m"
-  },
-  {
-    id: "8",
-    title: "Docker for Developers",
-    description: "A practical introduction to Docker for web developers.",
-    type: "video",
-    url: "/resources/videos/docker",
-    thumbnail: "https://images.unsplash.com/photo-1605745341112-85968b19335b?q=80&w=2670&auto=format&fit=crop",
-    downloadable: false,
-    duration: "2h 20m"
-  }
-];
-
-type ViewMode = "grid" | "compact" | "list";
-type ResourceTypeFilter = "all" | ResourceType;
+import { Badge } from "@/components/ui/badge";
+import ButtonLink from "@/components/atoms/ButtonLink";
+import { FileText, BookOpen, Lightbulb, Clock, Layout, Code } from "lucide-react";
 
 const ResourcesPage = () => {
-  const [viewMode, setViewMode] = useState<ViewMode>("grid");
-  const [activeTab, setActiveTab] = useState<ResourceTypeFilter>("all");
+  const [viewMode, setViewMode] = useState<"list" | "grid">("grid");
+  const [searchQuery, setSearchQuery] = useState("");
   
-  const getFilteredResources = () => {
-    if (activeTab === "all") {
-      return resources;
+  // Resource categories and items
+  const categories = ["All", "Roadmaps", "Guides", "Tutorials", "Challenges"];
+  const [activeCategory, setActiveCategory] = useState("All");
+  
+  const resources = [
+    {
+      id: 1,
+      title: "Frontend Development Roadmap",
+      description: "A comprehensive guide to becoming a modern frontend developer",
+      category: "Roadmaps",
+      image: "https://source.unsplash.com/random/300x200?code",
+      tags: ["HTML", "CSS", "JavaScript", "React"],
+      link: "/resources/roadmap-frontend"
+    },
+    {
+      id: 2,
+      title: "Backend Development Roadmap",
+      description: "Learn the path to becoming a backend developer",
+      category: "Roadmaps",
+      image: "https://source.unsplash.com/random/300x200?server",
+      tags: ["Node.js", "Databases", "API", "Security"],
+      link: "/resources/roadmap-backend"
+    },
+    {
+      id: 3,
+      title: "React Best Practices",
+      description: "A guide to writing clean and efficient React code",
+      category: "Guides",
+      image: "https://source.unsplash.com/random/300x200?react",
+      tags: ["React", "JavaScript", "Performance"],
+      link: "/resources/react-best-practices"
+    },
+    {
+      id: 4,
+      title: "Building with Three.js",
+      description: "Learn how to create 3D experiences for the web",
+      category: "Tutorials",
+      image: "https://source.unsplash.com/random/300x200?3d",
+      tags: ["Three.js", "WebGL", "JavaScript"],
+      link: "/resources/threejs-tutorial"
+    },
+    {
+      id: 5,
+      title: "Data Structures & Algorithms",
+      description: "Master the fundamentals of computer science",
+      category: "Guides",
+      image: "https://source.unsplash.com/random/300x200?algorithm",
+      tags: ["Algorithms", "Data Structures", "Problem Solving"],
+      link: "/resources/dsa-guide"
+    },
+    {
+      id: 6,
+      title: "30-Day JavaScript Challenge",
+      description: "Enhance your JS skills with daily coding challenges",
+      category: "Challenges",
+      image: "https://source.unsplash.com/random/300x200?challenge",
+      tags: ["JavaScript", "Challenge", "Practice"],
+      link: "/resources/challenges/javascript-30"
+    },
+    {
+      id: 7,
+      title: "CSS Layout Mastery",
+      description: "Level up your CSS layout skills with practical examples",
+      category: "Tutorials",
+      image: "https://source.unsplash.com/random/300x200?css",
+      tags: ["CSS", "Layout", "Flexbox", "Grid"],
+      link: "/resources/css-layout-tutorial"
+    },
+    {
+      id: 8,
+      title: "API Design Guide",
+      description: "Learn how to design robust and scalable APIs",
+      category: "Guides",
+      image: "https://source.unsplash.com/random/300x200?api",
+      tags: ["API", "RESTful", "Design"],
+      link: "/resources/api-design-guide"
     }
-    return resources.filter(resource => resource.type === activeTab);
-  };
+  ];
   
-  const filteredResources = getFilteredResources();
+  // Filter resources based on active category and search query
+  const filteredResources = resources.filter((resource) => {
+    const matchesCategory = activeCategory === "All" || resource.category === activeCategory;
+    const matchesSearch = 
+      resource.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      resource.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      resource.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    return matchesCategory && matchesSearch;
+  });
   
-  const resourceTypeIcons = {
-    roadmap: <FileText className="h-6 w-6 text-blue-400" />,
-    pdf: <BookOpen className="h-6 w-6 text-green-400" />,
-    challenge: <Award className="h-6 w-6 text-orange-400" />,
-    video: <Clock className="h-6 w-6 text-purple-400" />
-  };
+  const ResourceCard = ({ resource }: { resource: typeof resources[0] }) => (
+    <motion.div 
+      layout
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 20 }}
+      transition={{ duration: 0.4 }}
+      className={`overflow-hidden ${viewMode === "grid" ? "h-full" : ""}`}
+    >
+      <Card className={`h-full ${viewMode === "list" ? "flex flex-row" : ""} overflow-hidden`}>
+        <div 
+          className={`${viewMode === "list" ? "w-1/4" : "h-40"} bg-cover bg-center`}
+          style={{ backgroundImage: `url(${resource.image})` }}
+        />
+        <CardContent className={`flex flex-col ${viewMode === "list" ? "w-3/4 p-5" : "p-5"}`}>
+          <h3 className="text-xl font-semibold mb-2">{resource.title}</h3>
+          <p className="text-muted-foreground mb-3 flex-grow">{resource.description}</p>
+          <div className="flex flex-wrap gap-2 mb-4">
+            {resource.tags.map((tag) => (
+              <Badge key={tag} variant="secondary">{tag}</Badge>
+            ))}
+          </div>
+          <ButtonLink 
+            to={resource.link}
+            variant="outline"
+            size="sm"
+            className="self-start"
+          >
+            View Resource
+          </ButtonLink>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
   
-  const getDifficultyColor = (difficulty?: string) => {
-    switch(difficulty) {
-      case "beginner": return "text-green-400";
-      case "intermediate": return "text-yellow-400";
-      case "advanced": return "text-red-400";
-      default: return "text-muted-foreground";
-    }
-  };
-
   return (
     <AnimatedPage>
-      <Navbar />
       <div className="container mx-auto px-4 py-16">
-        <motion.div
+        <motion.h1 
+          className="text-4xl font-bold mb-8 text-center"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="text-center mb-12"
         >
-          <h1 className="text-4xl font-bold">Resources</h1>
-          <p className="mt-4 text-lg max-w-2xl mx-auto">
-            Discover learning materials, roadmaps, guides, and interactive challenges to boost your skills.
+          Resources
+        </motion.h1>
+        
+        <motion.div 
+          className="max-w-3xl mx-auto mb-12 text-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <p className="text-lg mb-8">
+            Explore our curated collection of guides, tutorials, and challenges designed to help you level up your skills.
           </p>
         </motion.div>
-
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
-          <Tabs 
-            defaultValue="all" 
-            value={activeTab} 
-            onValueChange={(value) => setActiveTab(value as ResourceTypeFilter)}
-          >
-            <TabsList>
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="roadmap">Roadmaps</TabsTrigger>
-              <TabsTrigger value="pdf">PDFs</TabsTrigger>
-              <TabsTrigger value="challenge">Challenges</TabsTrigger>
-              <TabsTrigger value="video">Videos</TabsTrigger>
-            </TabsList>
-          </Tabs>
+        
+        <div className="mb-8 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="w-full md:w-1/2">
+            <Input
+              placeholder="Search resources..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full"
+            />
+          </div>
           
-          <div className="flex border rounded-md overflow-hidden">
-            <Toggle 
-              pressed={viewMode === "grid"} 
-              onPressedChange={() => setViewMode("grid")}
-              aria-label="Grid view"
-              className="rounded-none"
+          <div className="flex gap-2 items-center">
+            <span className="text-sm text-muted-foreground mr-2">View:</span>
+            <Button
+              variant={viewMode === "grid" ? "default" : "outline"}
+              size="icon"
+              onClick={() => setViewMode("grid")}
             >
-              <Grid2x2 size={16} />
-            </Toggle>
-            <Toggle 
-              pressed={viewMode === "compact"} 
-              onPressedChange={() => setViewMode("compact")}
-              aria-label="Compact grid view"
-              className="rounded-none"
+              <Layout className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === "list" ? "default" : "outline"}
+              size="icon"
+              onClick={() => setViewMode("list")}
             >
-              <Grid3x3 size={16} />
-            </Toggle>
-            <Toggle 
-              pressed={viewMode === "list"} 
-              onPressedChange={() => setViewMode("list")}
-              aria-label="List view"
-              className="rounded-none"
-            >
-              <List size={16} />
-            </Toggle>
+              <FileText className="h-4 w-4" />
+            </Button>
           </div>
         </div>
-
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={`${viewMode}-${activeTab}`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className={`
-              grid gap-6
-              ${viewMode === "grid" ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3" : ""}
-              ${viewMode === "compact" ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4" : ""}
-              ${viewMode === "list" ? "grid-cols-1" : ""}
-            `}
-          >
-            {filteredResources.map((resource, index) => (
-              <motion.div
-                key={resource.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ 
-                  opacity: 1, 
-                  y: 0,
-                  transition: { delay: 0.05 * index, duration: 0.5 }
-                }}
-              >
-                {viewMode === "list" ? (
-                  <Card className="flex flex-row h-24 bg-black/40 backdrop-blur-lg border border-white/10 overflow-hidden">
-                    <div 
-                      className="w-24 bg-cover bg-center"
-                      style={{ backgroundImage: `url(${resource.thumbnail})` }}
-                    />
-                    <div className="flex flex-1 justify-between items-center px-4">
-                      <div>
-                        <h3 className="font-medium">{resource.title}</h3>
-                        <div className="flex items-center text-sm text-muted-foreground">
-                          {resourceTypeIcons[resource.type]}
-                          <span className="ml-2 capitalize">{resource.type}</span>
-                          {resource.duration && (
-                            <span className="ml-4 flex items-center">
-                              <Clock size={14} className="mr-1" />
-                              {resource.duration}
-                            </span>
-                          )}
-                          {resource.difficulty && (
-                            <span className={`ml-4 capitalize ${getDifficultyColor(resource.difficulty)}`}>
-                              {resource.difficulty}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <Button size="sm" variant="ghost" rightIcon={<ArrowRight size={14} />}>
-                        View
-                      </Button>
-                    </div>
-                  </Card>
-                ) : viewMode === "compact" ? (
-                  <Card className="overflow-hidden h-40 bg-black/40 backdrop-blur-lg border border-white/10">
-                    <div className="relative h-full">
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent z-10" />
-                      <div 
-                        className="h-full w-full bg-cover bg-center"
-                        style={{ backgroundImage: `url(${resource.thumbnail})` }}
-                      />
-                      <div className="absolute inset-0 z-20 p-3 flex flex-col justify-between">
-                        <div className="flex justify-between items-start">
-                          {resourceTypeIcons[resource.type]}
-                          {resource.downloadable && <Download size={16} className="text-muted-foreground" />}
-                        </div>
-                        <div>
-                          <h3 className="font-medium text-sm mb-1">{resource.title}</h3>
-                          <div className="flex justify-between items-center">
-                            {resource.duration && (
-                              <span className="text-xs flex items-center text-muted-foreground">
-                                <Clock size={12} className="mr-1" />
-                                {resource.duration}
-                              </span>
-                            )}
-                            {resource.difficulty && (
-                              <span className={`text-xs capitalize ${getDifficultyColor(resource.difficulty)}`}>
-                                {resource.difficulty}
-                              </span>
-                            )}
-                            <Button size="sm" variant="ghost" className="p-1 h-auto">
-                              <ExternalLink size={14} />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-                ) : (
-                  <Card className="overflow-hidden h-full flex flex-col bg-black/40 backdrop-blur-lg border border-white/10">
-                    <div className="relative h-36 md:h-40 lg:h-44">
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10" />
-                      <div 
-                        className="h-full w-full bg-cover bg-center"
-                        style={{ backgroundImage: `url(${resource.thumbnail})` }}
-                      />
-                      <div className="absolute top-3 left-3 z-20">
-                        {resourceTypeIcons[resource.type]}
-                      </div>
-                      {resource.downloadable && (
-                        <div className="absolute top-3 right-3 z-20">
-                          <Download size={18} className="text-muted-foreground" />
-                        </div>
-                      )}
-                    </div>
-                    
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-lg">{resource.title}</CardTitle>
-                    </CardHeader>
-                    
-                    <CardContent className="flex-grow pb-2">
-                      <p className="text-sm text-muted-foreground">{resource.description}</p>
-                    </CardContent>
-                    
-                    <CardFooter className="pt-4 border-t border-white/10 flex justify-between">
-                      <div className="flex items-center text-sm">
-                        {resource.duration && (
-                          <span className="flex items-center text-muted-foreground">
-                            <Clock size={14} className="mr-1" />
-                            {resource.duration}
-                          </span>
-                        )}
-                        {resource.difficulty && (
-                          <span className={`ml-4 capitalize ${getDifficultyColor(resource.difficulty)}`}>
-                            {resource.difficulty}
-                          </span>
-                        )}
-                      </div>
-                      
-                      <Button size="sm" as={Link} to={resource.url} rightIcon={<ArrowRight size={14} />}>
-                        View
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                )}
-              </motion.div>
+        
+        <Tabs defaultValue="All" value={activeCategory} onValueChange={setActiveCategory}>
+          <TabsList className="w-full md:w-auto mb-6 grid grid-cols-2 md:flex">
+            {categories.map((category) => (
+              <TabsTrigger key={category} value={category}>
+                {category}
+              </TabsTrigger>
             ))}
-          </motion.div>
-        </AnimatePresence>
+          </TabsList>
+          
+          <TabsContent value={activeCategory} className="mt-0">
+            <AnimatePresence>
+              <div className={`grid gap-6 ${viewMode === "grid" ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"}`}>
+                {filteredResources.map((resource) => (
+                  <ResourceCard key={resource.id} resource={resource} />
+                ))}
+              </div>
+            </AnimatePresence>
+            
+            {filteredResources.length === 0 && (
+              <div className="text-center py-12">
+                <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-xl font-semibold">No resources found</h3>
+                <p className="text-muted-foreground mt-2">
+                  Try changing your search or filter criteria
+                </p>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
-      <Footer />
     </AnimatedPage>
   );
 };
