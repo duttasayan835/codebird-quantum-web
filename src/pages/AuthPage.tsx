@@ -10,7 +10,7 @@ import Button from "@/components/atoms/Button";
 import TextField from "@/components/atoms/TextField";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Mail, Lock, GitHub, Google } from "lucide-react";
+import { Mail, Lock, Github, LucideGithub, LucideGoogle } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { motion } from "framer-motion";
@@ -271,11 +271,11 @@ const AuthPage: React.FC = () => {
               
               <div className="grid grid-cols-2 gap-4 w-full">
                 <Button variant="outline" type="button" disabled={true}>
-                  <GitHub className="mr-2 h-4 w-4" />
+                  <Github className="mr-2 h-4 w-4" />
                   GitHub
                 </Button>
                 <Button variant="outline" type="button" disabled={true}>
-                  <Google className="mr-2 h-4 w-4" />
+                  <LucideGoogle className="mr-2 h-4 w-4" />
                   Google
                 </Button>
               </div>
