@@ -1,8 +1,17 @@
 
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Menu, X, ChevronDown, LogOut, User } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface NavItemProps {
   to: string;
@@ -56,6 +65,8 @@ const NavItem = ({ to, children, dropdown }: NavItemProps) => {
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, profile, signOut } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -64,6 +75,21 @@ const Navbar = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
+
+  const getUserInitials = () => {
+    if (profile?.full_name) {
+      return profile.full_name.split(' ')
+        .map((n: string) => n[0])
+        .join('')
+        .toUpperCase()
+        .substring(0, 2);
+    }
+    return user?.email?.substring(0, 2).toUpperCase() || 'CB';
+  };
 
   return (
     <header
@@ -101,12 +127,37 @@ const Navbar = () => {
           <NavItem to="/blog">Blog</NavItem>
           <NavItem to="/gallery">Gallery</NavItem>
           <NavItem to="/contact">Contact</NavItem>
-          <Link
-            to="/join"
-            className="ml-4 px-6 py-2 bg-primary hover:bg-primary/90 rounded-full text-white transition-all shadow-lg hover:shadow-primary/40"
-          >
-            Join Now
-          </Link>
+          
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger className="ml-4 flex items-center gap-2 px-2">
+                <Avatar className="h-8 w-8 border border-white/20">
+                  <AvatarImage src={profile?.avatar_url} />
+                  <AvatarFallback className="bg-primary text-xs">
+                    {getUserInitials()}
+                  </AvatarFallback>
+                </Avatar>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="glass-card">
+                <DropdownMenuItem className="cursor-pointer" onClick={() => navigate('/profile')}>
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Profile</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive" onClick={handleSignOut}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Logout</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link
+              to="/auth"
+              className="ml-4 px-6 py-2 bg-primary hover:bg-primary/90 rounded-full text-white transition-all shadow-lg hover:shadow-primary/40"
+            >
+              Login
+            </Link>
+          )}
         </nav>
 
         {/* Mobile Menu Button */}
@@ -133,13 +184,31 @@ const Navbar = () => {
             <Link to="/blog" className="px-4 py-3 hover:bg-white/10 rounded-lg" onClick={() => setIsMobileMenuOpen(false)}>Blog</Link>
             <Link to="/gallery" className="px-4 py-3 hover:bg-white/10 rounded-lg" onClick={() => setIsMobileMenuOpen(false)}>Gallery</Link>
             <Link to="/contact" className="px-4 py-3 hover:bg-white/10 rounded-lg" onClick={() => setIsMobileMenuOpen(false)}>Contact</Link>
-            <Link
-              to="/join"
-              className="mt-4 px-6 py-3 bg-primary hover:bg-primary/90 rounded-lg text-white text-center transition-all shadow-lg"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Join Now
-            </Link>
+            
+            {user ? (
+              <>
+                <Link to="/profile" className="px-4 py-3 hover:bg-white/10 rounded-lg" onClick={() => setIsMobileMenuOpen(false)}>
+                  Profile
+                </Link>
+                <button 
+                  className="px-4 py-3 text-left text-destructive hover:bg-white/10 rounded-lg" 
+                  onClick={() => {
+                    handleSignOut();
+                    setIsMobileMenuOpen(false);
+                  }}
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <Link
+                to="/auth"
+                className="mt-4 px-6 py-3 bg-primary hover:bg-primary/90 rounded-lg text-white text-center transition-all shadow-lg"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Login
+              </Link>
+            )}
           </nav>
         </div>
       </div>

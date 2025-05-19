@@ -9,8 +9,11 @@ import Footer from "../components/Footer";
 import AnimatedPage from "../components/AnimatedPage";
 import ThreeDBackground from "../components/ThreeDBackground";
 import ParticlesBackground from "../components/ParticlesBackground";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
+  const { user } = useAuth();
+
   return (
     <AnimatedPage>
       <ThreeDBackground />
