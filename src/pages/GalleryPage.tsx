@@ -2,119 +2,146 @@
 import React, { useState } from "react";
 import AnimatedPage from "../components/AnimatedPage";
 import { motion, AnimatePresence } from "framer-motion";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, X, Download, ChevronLeft, ChevronRight, Info } from "lucide-react";
+
+// Sample gallery images
+const galleryImages = [
+  {
+    id: 1,
+    title: "Hackathon Winners 2023",
+    category: "Events",
+    tags: ["hackathon", "coding", "winners"],
+    src: "https://source.unsplash.com/random/800×600/?hackathon&1",
+    date: "2023-09-12",
+  },
+  {
+    id: 2,
+    title: "Web Development Workshop",
+    category: "Workshops",
+    tags: ["web", "development", "learning"],
+    src: "https://source.unsplash.com/random/800×600/?programming&2",
+    date: "2023-10-20",
+  },
+  {
+    id: 3,
+    title: "Team Building Retreat",
+    category: "Team",
+    tags: ["team", "retreat", "fun"],
+    src: "https://source.unsplash.com/random/800×600/?team&3",
+    date: "2023-11-07",
+  },
+  {
+    id: 4,
+    title: "Annual Conference",
+    category: "Events",
+    tags: ["conference", "speakers", "tech"],
+    src: "https://source.unsplash.com/random/800×600/?conference&4",
+    date: "2023-05-15",
+  },
+  {
+    id: 5,
+    title: "Design Sprint",
+    category: "Workshops",
+    tags: ["design", "ux", "collaboration"],
+    src: "https://source.unsplash.com/random/800×600/?design&5",
+    date: "2023-06-28",
+  },
+  {
+    id: 6,
+    title: "Virtual Meetup",
+    category: "Meetups",
+    tags: ["virtual", "online", "community"],
+    src: "https://source.unsplash.com/random/800×600/?virtual&6",
+    date: "2023-08-09",
+  },
+  {
+    id: 7,
+    title: "Coding Boot Camp",
+    category: "Workshops",
+    tags: ["bootcamp", "intensive", "learning"],
+    src: "https://source.unsplash.com/random/800×600/?coding&7",
+    date: "2023-04-10",
+  },
+  {
+    id: 8,
+    title: "Open Source Contribution Day",
+    category: "Events",
+    tags: ["opensource", "contribution", "collaboration"],
+    src: "https://source.unsplash.com/random/800×600/?opensource&8",
+    date: "2023-07-22",
+  },
+  {
+    id: 9,
+    title: "AI & Machine Learning Panel",
+    category: "Meetups",
+    tags: ["ai", "ml", "panel", "discussion"],
+    src: "https://source.unsplash.com/random/800×600/?ai&9",
+    date: "2023-09-30",
+  },
+];
+
+const categories = [
+  { value: "all", label: "All" },
+  { value: "Events", label: "Events" },
+  { value: "Workshops", label: "Workshops" },
+  { value: "Meetups", label: "Meetups" },
+  { value: "Team", label: "Team" },
+];
 
 const GalleryPage = () => {
-  const [selectedImage, setSelectedImage] = useState<number | null>(null);
-
-  // Gallery items data
-  const galleryItems = [
-    { 
-      id: 1, 
-      title: "Annual Hackathon", 
-      category: "Events", 
-      description: "Our community's annual hackathon brings together the brightest minds to solve real-world problems."
-    },
-    { 
-      id: 2, 
-      title: "Workshop Series", 
-      category: "Education", 
-      description: "Hands-on workshops designed to help our members master new technologies and frameworks."
-    },
-    { 
-      id: 3, 
-      title: "Team Building", 
-      category: "Community", 
-      description: "Building strong relationships through collaborative activities and events."
-    },
-    { 
-      id: 4, 
-      title: "Conference Presentations", 
-      category: "Events", 
-      description: "Our members sharing knowledge at industry conferences and meetups."
-    },
-    { 
-      id: 5, 
-      title: "Design Sprint", 
-      category: "Projects", 
-      description: "Rapid prototyping and ideation sessions to bring concepts to life."
-    },
-    { 
-      id: 6, 
-      title: "Community Meetup", 
-      category: "Community", 
-      description: "Regular gatherings where members connect, share ideas, and inspire each other."
-    },
-    { 
-      id: 7, 
-      title: "Project Launch", 
-      category: "Projects", 
-      description: "Celebrating the successful launch of projects created by our community members."
-    },
-    { 
-      id: 8, 
-      title: "Coding Sessions", 
-      category: "Education", 
-      description: "Collaborative coding sessions where members learn from each other."
-    },
-    { 
-      id: 9, 
-      title: "Tech Talks", 
-      category: "Education", 
-      description: "Expert speakers sharing insights on cutting-edge technologies and industry trends."
-    },
-    { 
-      id: 10, 
-      title: "Hackathon Winners", 
-      category: "Events", 
-      description: "Celebrating the innovative solutions created during our hackathons."
-    },
-    { 
-      id: 11, 
-      title: "Office Tour", 
-      category: "Community", 
-      description: "A glimpse into our collaborative workspace and development environment."
-    },
-    { 
-      id: 12, 
-      title: "Product Demo", 
-      category: "Projects", 
-      description: "Showcasing the features and capabilities of our latest projects."
-    }
-  ];
-
-  const navigateLightbox = (direction: 'prev' | 'next') => {
-    if (selectedImage === null) return;
+  const [activeCategory, setActiveCategory] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedImage, setSelectedImage] = useState<typeof galleryImages[0] | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  
+  // Filter images based on category and search
+  const filteredImages = galleryImages.filter(image => {
+    const matchesCategory = activeCategory === "all" || image.category === activeCategory;
+    const matchesSearch = 
+      !searchQuery || 
+      image.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      image.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
     
-    const currentIndex = galleryItems.findIndex(item => item.id === selectedImage);
-    if (direction === 'prev') {
-      const prevIndex = (currentIndex - 1 + galleryItems.length) % galleryItems.length;
-      setSelectedImage(galleryItems[prevIndex].id);
-    } else {
-      const nextIndex = (currentIndex + 1) % galleryItems.length;
-      setSelectedImage(galleryItems[nextIndex].id);
-    }
+    return matchesCategory && matchesSearch;
+  });
+  
+  const openLightbox = (image: typeof galleryImages[0]) => {
+    setSelectedImage(image);
+    setLightboxIndex(filteredImages.findIndex(img => img.id === image.id));
+    document.body.style.overflow = "hidden";
   };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowLeft') {
-      navigateLightbox('prev');
-    } else if (e.key === 'ArrowRight') {
-      navigateLightbox('next');
-    } else if (e.key === 'Escape') {
-      setSelectedImage(null);
-    }
+  
+  const closeLightbox = () => {
+    setSelectedImage(null);
+    setLightboxIndex(null);
+    document.body.style.overflow = "auto";
   };
-
-  // Get the selected image data
-  const selectedImageData = galleryItems.find(item => item.id === selectedImage);
-
+  
+  const goToPrevious = () => {
+    if (lightboxIndex === null) return;
+    
+    const newIndex = (lightboxIndex - 1 + filteredImages.length) % filteredImages.length;
+    setSelectedImage(filteredImages[newIndex]);
+    setLightboxIndex(newIndex);
+  };
+  
+  const goToNext = () => {
+    if (lightboxIndex === null) return;
+    
+    const newIndex = (lightboxIndex + 1) % filteredImages.length;
+    setSelectedImage(filteredImages[newIndex]);
+    setLightboxIndex(newIndex);
+  };
+  
   return (
-    <AnimatedPage>
+    <AnimatedPage transitionType="fade">
+      <Navbar />
       <div className="container mx-auto px-4 py-16">
         <motion.h1 
           className="text-4xl font-bold mb-8 text-center"
@@ -125,103 +152,175 @@ const GalleryPage = () => {
           Gallery
         </motion.h1>
         
-        <motion.div 
-          className="max-w-3xl mx-auto mb-12 text-center"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          <p className="text-lg mb-8">
-            Explore photos and media from our events, workshops, and community activities.
-          </p>
-        </motion.div>
+        <div className="max-w-4xl mx-auto mb-12 text-center">
+          <motion.p
+            className="text-lg mb-8"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            Browse through moments captured at our events, workshops, and community gatherings.
+          </motion.p>
+          
+          {/* Filters */}
+          <motion.div
+            className="flex flex-col md:flex-row gap-4 items-center justify-between mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            <div className="relative w-full md:w-80">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search gallery..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
+            <Tabs defaultValue="all" value={activeCategory} onValueChange={setActiveCategory} className="w-full md:w-auto">
+              <TabsList>
+                {categories.map((category) => (
+                  <TabsTrigger key={category.value} value={category.value}>
+                    {category.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          </motion.div>
+        </div>
         
-        <motion.div 
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, staggerChildren: 0.1 }}
-        >
-          {galleryItems.map((item, index) => (
+        {/* Gallery Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredImages.map((image, index) => (
             <motion.div
-              key={item.id}
-              className="relative overflow-hidden rounded-lg cursor-pointer group"
+              key={image.id}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.4, delay: 0.05 * index }}
-              whileHover={{ scale: 1.03 }}
-              onClick={() => setSelectedImage(item.id)}
+              transition={{ duration: 0.3, delay: index * 0.1 }}
+              className="group relative overflow-hidden rounded-lg cursor-pointer"
+              onClick={() => openLightbox(image)}
             >
-              <AspectRatio ratio={1 / 1}>
-                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-700 opacity-80" />
-                <div 
-                  className="absolute inset-0 bg-cover bg-center" 
-                  style={{ backgroundImage: `url(https://source.unsplash.com/random/800x800?${item.category.toLowerCase()})` }}
+              <div className="aspect-w-3 aspect-h-2">
+                <img 
+                  src={image.src} 
+                  alt={image.title}
+                  className="object-cover w-full h-full transform transition-transform duration-500 group-hover:scale-110"
                 />
-                <div className="absolute inset-0 bg-black/30 transition-opacity group-hover:opacity-20" />
-                <div className="absolute inset-0 flex flex-col justify-end p-4 text-white">
-                  <h3 className="text-lg font-semibold">{item.title}</h3>
-                  <p className="text-sm opacity-80">{item.category}</p>
+              </div>
+              
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
+                <h3 className="text-white font-medium">{image.title}</h3>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {image.tags.map((tag) => (
+                    <Badge key={tag} variant="secondary" className="bg-black/30 text-white">
+                      #{tag}
+                    </Badge>
+                  ))}
                 </div>
-              </AspectRatio>
+              </div>
             </motion.div>
           ))}
-        </motion.div>
+        </div>
         
-        {/* Lightbox Modal */}
-        <Dialog open={selectedImage !== null} onOpenChange={(open) => !open && setSelectedImage(null)}>
-          <DialogContent 
-            className="max-w-5xl p-0 border-0 bg-transparent shadow-none"
-            onKeyDown={handleKeyDown}
-          >
-            <AnimatePresence mode="wait">
-              {selectedImageData && (
-                <motion.div
-                  key={selectedImageData.id}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.3 }}
-                  className="bg-background/95 backdrop-blur-sm rounded-lg overflow-hidden relative"
-                >
-                  <div className="aspect-[16/9] relative">
-                    <img 
-                      src={`https://source.unsplash.com/random/1600x900?${selectedImageData.category.toLowerCase()}`} 
-                      alt={selectedImageData.title}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  
-                  <div className="p-6">
-                    <h2 className="text-2xl font-bold mb-2">{selectedImageData.title}</h2>
-                    <p className="text-muted-foreground mb-4">{selectedImageData.description}</p>
-                    <div className="flex items-center justify-between">
-                      <Badge variant="secondary">{selectedImageData.category}</Badge>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="icon" onClick={() => navigateLightbox('prev')}>
-                          <ChevronLeft className="h-4 w-4" />
-                        </Button>
-                        <Button variant="outline" size="icon" onClick={() => navigateLightbox('next')}>
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </div>
+        {filteredImages.length === 0 && (
+          <div className="text-center py-20">
+            <h3 className="text-xl font-medium mb-2">No images found</h3>
+            <p className="text-muted-foreground">Try adjusting your search or filter criteria</p>
+          </div>
+        )}
+        
+        {/* Lightbox */}
+        <AnimatePresence>
+          {selectedImage && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
+              onClick={closeLightbox}
+            >
+              {/* Close button */}
+              <button 
+                className="absolute top-4 right-4 z-50 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  closeLightbox();
+                }}
+              >
+                <X size={24} />
+              </button>
+              
+              {/* Navigation buttons */}
+              <button 
+                className="absolute left-4 z-50 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goToPrevious();
+                }}
+              >
+                <ChevronLeft size={24} />
+              </button>
+              
+              <button 
+                className="absolute right-4 z-50 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goToNext();
+                }}
+              >
+                <ChevronRight size={24} />
+              </button>
+              
+              {/* Image */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ type: "spring", stiffness: 200, damping: 25 }}
+                className="relative max-w-5xl max-h-[80vh] w-full"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <img 
+                  src={selectedImage.src} 
+                  alt={selectedImage.title} 
+                  className="object-contain w-full h-full"
+                />
+                
+                {/* Info overlay at bottom */}
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="text-white text-xl font-medium">{selectedImage.title}</h3>
+                      <p className="text-white/70 text-sm">
+                        {new Date(selectedImage.date).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric"
+                        })}
+                      </p>
                     </div>
+                    
+                    <Button variant="outline" size="sm" className="bg-black/50 border-white/20">
+                      <Download size={16} className="mr-2" /> Download
+                    </Button>
                   </div>
                   
-                  <Button 
-                    className="absolute top-4 right-4 bg-background/50 backdrop-blur-sm hover:bg-background/80"
-                    size="icon" 
-                    variant="ghost" 
-                    onClick={() => setSelectedImage(null)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </DialogContent>
-        </Dialog>
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {selectedImage.tags.map((tag) => (
+                      <Badge key={tag} variant="outline" className="text-white border-white/20">
+                        #{tag}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
+      <Footer />
     </AnimatedPage>
   );
 };
