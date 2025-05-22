@@ -21,6 +21,7 @@
   mix-blend-mode: difference;
   transition: transform 0.2s ease;
   background: radial-gradient(circle, rgba(139, 92, 246, 0.8) 0%, rgba(6, 182, 212, 0.4) 70%, rgba(0, 0, 0, 0) 100%);
+  filter: blur(2px);
 }
 
 .quantum-cursor-trail {
@@ -65,4 +66,102 @@
 /* For the 3D effects */
 canvas {
   touch-action: none;
+}
+
+/* Create the futuristic grid overlay */
+.futuristic-grid {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    linear-gradient(rgba(139, 92, 246, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139, 92, 246, 0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0.5;
+}
+
+/* Animated radial gradient background */
+.radial-animated-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at center, rgba(6, 182, 212, 0.05) 0%, transparent 70%);
+  z-index: -2;
+  pointer-events: none;
+  animation: pulse-bg 10s ease-in-out infinite alternate;
+}
+
+@keyframes pulse-bg {
+  0% { transform: scale(1); opacity: 0.5; }
+  100% { transform: scale(1.2); opacity: 0.8; }
+}
+
+/* Neon glow effects for key elements */
+.neon-glow {
+  box-shadow: 
+    0 0 5px rgba(139, 92, 246, 0.5),
+    0 0 10px rgba(139, 92, 246, 0.3),
+    0 0 20px rgba(139, 92, 246, 0.2);
+  transition: box-shadow 0.3s ease;
+}
+
+.neon-glow:hover {
+  box-shadow: 
+    0 0 5px rgba(139, 92, 246, 0.7),
+    0 0 15px rgba(139, 92, 246, 0.5),
+    0 0 30px rgba(139, 92, 246, 0.3);
+}
+
+/* Animated gradient borders */
+.animated-border {
+  position: relative;
+  border-radius: 0.75rem;
+}
+
+.animated-border::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 0.85rem;
+  background: linear-gradient(90deg, #8B5CF6, #06B6D4, #8B5CF6);
+  background-size: 200% 200%;
+  animation: border-animate 3s linear infinite;
+  z-index: -1;
+}
+
+@keyframes border-animate {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Interactive gradient text */
+.interactive-text {
+  background: linear-gradient(90deg, #8B5CF6, #06B6D4);
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  display: inline-block;
+  transition: all 0.3s ease;
+}
+
+.interactive-text:hover {
+  letter-spacing: 0.5px;
+  text-shadow: 
+    0 0 5px rgba(139, 92, 246, 0.7),
+    0 0 15px rgba(139, 92, 246, 0.5);
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
