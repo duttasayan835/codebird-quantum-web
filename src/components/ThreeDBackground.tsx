@@ -1,5 +1,5 @@
 
-import React, { useRef } from "react";
+import React, { useRef, useEffect } from "react";
 import * as THREE from "three";
 import { useFrame, Canvas } from "@react-three/fiber";
 import { OrbitControls, Sphere } from "@react-three/drei";
@@ -13,6 +13,10 @@ interface ParticlePosition {
   x: number;
   y: number;
   z: number;
+}
+
+interface ThreeDBackgroundProps {
+  onError?: () => void;
 }
 
 const Particles: React.FC<ParticleProps> = ({ count = 1000, color = "#8B5CF6" }) => {
@@ -111,9 +115,25 @@ const GradientSphere = () => {
   );
 };
 
-const ThreeDBackground: React.FC = () => {
+const ThreeDBackground: React.FC<ThreeDBackgroundProps> = ({ onError }) => {
   // Add error handling for the Canvas component
   const [hasError, setHasError] = React.useState(false);
+  
+  useEffect(() => {
+    // Check if WebGL is supported
+    try {
+      const canvas = document.createElement('canvas');
+      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+      
+      if (!gl) {
+        throw new Error('WebGL not supported');
+      }
+    } catch (error) {
+      console.error("WebGL not supported:", error);
+      setHasError(true);
+      if (onError) onError();
+    }
+  }, [onError]);
   
   // If WebGL is not supported or we encountered an error, show a simple fallback
   if (hasError) {
@@ -125,7 +145,10 @@ const ThreeDBackground: React.FC = () => {
   return (
     <div className="fixed inset-0 -z-10">
       <React.Suspense fallback={<div className="fixed inset-0 -z-10 bg-gradient-to-br from-background to-background/80 via-primary/5"></div>}>
-        <ErrorBoundary onError={() => setHasError(true)}>
+        <ErrorBoundary onError={() => {
+          setHasError(true);
+          if (onError) onError();
+        }}>
           <Canvas camera={{ position: [0, 0, 20], fov: 60 }}>
             <ambientLight intensity={0.5} />
             <directionalLight position={[10, 10, 10]} intensity={1} />

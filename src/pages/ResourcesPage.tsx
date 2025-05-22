@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import AnimatedPage from "../components/AnimatedPage";
 import { motion, AnimatePresence } from "framer-motion";
@@ -9,6 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import ButtonLink from "@/components/atoms/ButtonLink";
 import { FileText, BookOpen, Lightbulb, Clock, Layout, Code } from "lucide-react";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 const ResourcesPage = () => {
   const [viewMode, setViewMode] = useState<"list" | "grid">("grid");
@@ -141,6 +142,7 @@ const ResourcesPage = () => {
   
   return (
     <AnimatedPage>
+      <Navbar />
       <div className="container mx-auto px-4 py-16">
         <motion.h1 
           className="text-4xl font-bold mb-8 text-center"
@@ -221,6 +223,7 @@ const ResourcesPage = () => {
           </TabsContent>
         </Tabs>
       </div>
+      <Footer />
     </AnimatedPage>
   );
 };

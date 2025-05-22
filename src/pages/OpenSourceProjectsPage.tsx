@@ -6,6 +6,8 @@ import { Link } from "react-router-dom";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, Github, Star } from "lucide-react";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 const OpenSourceProjectsPage = () => {
   const openSourceProjects = [
@@ -41,6 +43,7 @@ const OpenSourceProjectsPage = () => {
 
   return (
     <AnimatedPage>
+      <Navbar />
       <div className="container mx-auto px-4 py-16">
         <motion.h1 
           className="text-4xl font-bold mb-8 text-center"
@@ -111,6 +114,7 @@ const OpenSourceProjectsPage = () => {
           ))}
         </div>
       </div>
+      <Footer />
     </AnimatedPage>
   );
 };
