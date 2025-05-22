@@ -35,7 +35,7 @@ const CookiesPage = () => {
             
             <h2>2. How We Use Cookies</h2>
             <p>
-              The Codebird Club website uses cookies for the following purposes:
+              The CodeBird Club website uses cookies for the following purposes:
             </p>
             <ul>
               <li>

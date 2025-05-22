@@ -2,10 +2,13 @@
 import React from "react";
 import AnimatedPage from "../components/AnimatedPage";
 import { motion } from "framer-motion";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 const AboutPage = () => {
   return (
     <AnimatedPage>
+      <Navbar />
       <div className="container mx-auto px-4 py-16">
         <motion.h1 
           className="text-4xl font-bold mb-8 text-center"
@@ -42,6 +45,7 @@ const AboutPage = () => {
           </ul>
         </motion.div>
       </div>
+      <Footer />
     </AnimatedPage>
   );
 };

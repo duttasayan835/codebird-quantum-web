@@ -29,7 +29,7 @@ const PrivacyPage = () => {
           >
             <h2>1. Introduction</h2>
             <p>
-              At the Codebird Club, we respect your privacy and are committed to protecting your personal data. 
+              At the CodeBird Club, we respect your privacy and are committed to protecting your personal data. 
               This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you 
               visit our website or use our services.
             </p>

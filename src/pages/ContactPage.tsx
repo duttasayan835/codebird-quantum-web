@@ -7,6 +7,8 @@ import ButtonLink from "@/components/atoms/ButtonLink";
 import Button from "@/components/atoms/Button";
 import { Github, Twitter, Linkedin, Mail, Phone, MapPin } from "lucide-react";
 import useConfetti from "@/hooks/use-confetti";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 const ContactPage = () => {
   const [mapboxToken, setMapboxToken] = useState<string>("");
@@ -29,6 +31,7 @@ const ContactPage = () => {
   
   return (
     <AnimatedPage>
+      <Navbar />
       {ConfettiComponent}
       <div className="container mx-auto px-4 py-16">
         <motion.h1 
@@ -175,6 +178,7 @@ const ContactPage = () => {
           </motion.div>
         </div>
       </div>
+      <Footer />
     </AnimatedPage>
   );
 };

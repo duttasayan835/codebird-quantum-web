@@ -15,7 +15,7 @@ const Footer = () => {
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-codebird-primary to-codebird-accent flex items-center justify-center">
                 <span className="font-bold text-white text-lg">CB</span>
               </div>
-              <span className="text-xl font-bold text-gradient">Codebird Club</span>
+              <span className="text-xl font-bold text-gradient">CodeBird Club</span>
             </Link>
             <p className="text-foreground/70 mb-6">
               Empowering developers to soar beyond limitations through community, innovation, and cutting-edge technology.
@@ -72,7 +72,7 @@ const Footer = () => {
         
         <div className="mt-10 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center">
           <p className="text-foreground/50 text-sm">
-            &copy; {currentYear} Codebird Club. All rights reserved.
+            &copy; {currentYear} CodeBird Club. All rights reserved.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <Link to="/terms" className="text-foreground/50 text-sm hover:text-foreground transition-colors">Terms</Link>

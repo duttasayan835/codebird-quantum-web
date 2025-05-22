@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon, MapPinIcon, UsersIcon, ClockIcon } from "lucide-react";
 import { useParams } from "react-router-dom";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 const EventDetail = () => {
   const { id } = useParams();
@@ -37,6 +39,7 @@ const EventDetail = () => {
   
   return (
     <AnimatedPage>
+      <Navbar />
       <div className="container mx-auto px-4 py-16">
         <motion.div 
           className="max-w-4xl mx-auto"
@@ -109,6 +112,7 @@ const EventDetail = () => {
           </div>
         </motion.div>
       </div>
+      <Footer />
     </AnimatedPage>
   );
 };

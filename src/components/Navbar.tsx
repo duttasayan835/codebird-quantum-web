@@ -105,7 +105,7 @@ const Navbar = () => {
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-codebird-primary to-codebird-accent flex items-center justify-center animate-glow">
             <span className="font-bold text-white text-lg">CB</span>
           </div>
-          <span className="text-xl font-bold text-gradient">Codebird Club</span>
+          <span className="text-xl font-bold text-gradient">CodeBird Club</span>
         </Link>
 
         {/* Desktop Navigation */}

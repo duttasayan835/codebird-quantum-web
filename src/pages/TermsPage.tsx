@@ -29,14 +29,14 @@ const TermsPage = () => {
           >
             <h2>1. Acceptance of Terms</h2>
             <p>
-              By accessing and using the Codebird Club website and services, you acknowledge that you have read, 
+              By accessing and using the CodeBird Club website and services, you acknowledge that you have read, 
               understood, and agree to be bound by these Terms and Conditions. If you do not agree with any part 
               of these terms, you may not access or use our website or services.
             </p>
             
             <h2>2. Membership</h2>
             <p>
-              Membership to the Codebird Club is subject to approval and is at our sole discretion. We reserve the 
+              Membership to the CodeBird Club is subject to approval and is at our sole discretion. We reserve the 
               right to reject applications or terminate memberships without providing reasons. Membership benefits 
               are subject to change and may vary depending on your membership level.
             </p>
@@ -44,7 +44,7 @@ const TermsPage = () => {
             <h2>3. Intellectual Property</h2>
             <p>
               All content on this website, including but not limited to text, graphics, logos, images, audio, video, 
-              and software, is the property of the Codebird Club or its content suppliers and is protected by 
+              and software, is the property of the CodeBird Club or its content suppliers and is protected by 
               international copyright laws. Unauthorized use, reproduction, modification, distribution, or display 
               of this content is strictly prohibited.
             </p>
@@ -69,7 +69,7 @@ const TermsPage = () => {
             
             <h2>6. Limitation of Liability</h2>
             <p>
-              The Codebird Club shall not be liable for any direct, indirect, incidental, special, or consequential 
+              The CodeBird Club shall not be liable for any direct, indirect, incidental, special, or consequential 
               damages resulting from the use or inability to use our website or services. We make no warranties, 
               expressed or implied, regarding the reliability, accuracy, or availability of our website or services.
             </p>
