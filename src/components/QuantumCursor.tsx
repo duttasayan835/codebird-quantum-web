@@ -21,7 +21,6 @@ const QuantumCursor: React.FC<QuantumCursorProps> = ({
   const [isClicking, setIsClicking] = useState(false);
 
   const cursorRef = useRef<HTMLDivElement>(null);
-  const trailsRef = useRef<Array<HTMLDivElement | null>>([]);
 
   // Update cursor position based on mouse movement
   useEffect(() => {
@@ -124,13 +123,15 @@ const QuantumCursor: React.FC<QuantumCursorProps> = ({
       {trailPositions.map((pos, i) => (
         <motion.div
           key={i}
-          ref={el => (trailsRef.current[i] = el)}
-          className="quantum-cursor-trail fixed pointer-events-none z-[9998]"
+          className="quantum-cursor-trail fixed pointer-events-none z-[9998] rounded-full bg-primary/30"
           style={{
-            left: pos.x,
-            top: pos.y,
+            position: 'absolute',
+            left: pos.x - 5,
+            top: pos.y - 5,
+            width: 10,
+            height: 10,
             opacity: 1 - i / trailLength,
-            scale: 1 - i / (trailLength * 1.5),
+            transform: `scale(${1 - i / (trailLength * 1.5)})`,
           }}
         />
       ))}
