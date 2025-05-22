@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import AnimatedPage from "../components/AnimatedPage";
 import { motion } from "framer-motion";
@@ -13,6 +14,7 @@ import TextField from "@/components/atoms/TextField";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import confetti from 'canvas-confetti';
+import useConfetti from '@/hooks/use-confetti';
 
 interface FormValues {
   name: string;
@@ -43,6 +45,7 @@ const formSchema = z.object({
 const JoinPage = () => {
   const [submitted, setSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const { triggerConfetti } = useConfetti();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -65,7 +68,7 @@ const JoinPage = () => {
       
       setTimeout(() => {
         setSubmitted(true);
-        confetti.addConfetti();
+        triggerConfetti(); // Use our custom hook instead of direct confetti call
         toast.success("Your application has been submitted successfully!");
       }, 1500);
       
@@ -118,9 +121,9 @@ const JoinPage = () => {
               <p className="mb-6">Thank you for applying to join the CodeBird Society. We'll review your application and get back to you soon.</p>
             </div>
             
-            <Button asChild>
-              <Link to="/">Return to Home</Link>
-            </Button>
+            <Link to="/" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+              Return to Home
+            </Link>
           </motion.div>
         ) : (
           <motion.div 
