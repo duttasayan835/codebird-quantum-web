@@ -98,7 +98,7 @@ const AuthPage: React.FC = () => {
           <Card className="backdrop-blur-lg bg-black/50 border border-white/10">
             <CardHeader>
               <CardTitle className="text-2xl text-center mb-2">
-                Welcome to Codebird Club
+                Welcome to CodeBird Club
               </CardTitle>
               <CardDescription className="text-center">
                 Join our community of developers and soar beyond limitations
