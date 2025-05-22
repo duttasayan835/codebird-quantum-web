@@ -1,17 +1,35 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import AnimatedPage from "../components/AnimatedPage";
 import { motion } from "framer-motion";
 import ContactMap from "@/components/ContactMap";
 import ButtonLink from "@/components/atoms/ButtonLink";
 import Button from "@/components/atoms/Button";
-import { Github, Twitter, Linkedin, Mail, Phone } from "lucide-react";
+import { Github, Twitter, Linkedin, Mail, Phone, MapPin } from "lucide-react";
+import useConfetti from "@/hooks/use-confetti";
 
 const ContactPage = () => {
   const [mapboxToken, setMapboxToken] = useState<string>("");
+  const { triggerConfetti, ConfettiComponent } = useConfetti();
+  
+  // Try to get saved token from localStorage
+  useEffect(() => {
+    const savedToken = localStorage.getItem("mapbox_token");
+    if (savedToken) {
+      setMapboxToken(savedToken);
+    }
+  }, []);
+  
+  // Save token to localStorage when it changes
+  useEffect(() => {
+    if (mapboxToken) {
+      localStorage.setItem("mapbox_token", mapboxToken);
+    }
+  }, [mapboxToken]);
   
   return (
     <AnimatedPage>
+      {ConfettiComponent}
       <div className="container mx-auto px-4 py-16">
         <motion.h1 
           className="text-4xl font-bold mb-8 text-center"
@@ -37,7 +55,11 @@ const ContactPage = () => {
               </p>
               
               <div className="space-y-6">
-                <div className="flex items-start space-x-4">
+                <motion.div 
+                  className="flex items-start space-x-4"
+                  whileHover={{ x: 5 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
                   <div className="bg-primary/10 p-3 rounded-full">
                     <Mail className="h-6 w-6 text-primary" />
                   </div>
@@ -45,9 +67,13 @@ const ContactPage = () => {
                     <h3 className="font-medium">Email</h3>
                     <p className="text-muted-foreground">contact@codebirdclub.com</p>
                   </div>
-                </div>
+                </motion.div>
                 
-                <div className="flex items-start space-x-4">
+                <motion.div 
+                  className="flex items-start space-x-4"
+                  whileHover={{ x: 5 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
                   <div className="bg-primary/10 p-3 rounded-full">
                     <Phone className="h-6 w-6 text-primary" />
                   </div>
@@ -55,17 +81,21 @@ const ContactPage = () => {
                     <h3 className="font-medium">Phone</h3>
                     <p className="text-muted-foreground">+1 (555) 123-4567</p>
                   </div>
-                </div>
+                </motion.div>
                 
-                <div className="flex items-start space-x-4">
+                <motion.div 
+                  className="flex items-start space-x-4"
+                  whileHover={{ x: 5 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
                   <div className="bg-primary/10 p-3 rounded-full">
-                    <Mail className="h-6 w-6 text-primary" />
+                    <MapPin className="h-6 w-6 text-primary" />
                   </div>
                   <div>
                     <h3 className="font-medium">Address</h3>
                     <p className="text-muted-foreground">123 Innovation Street, San Francisco, CA</p>
                   </div>
-                </div>
+                </motion.div>
               </div>
             </div>
             
@@ -79,6 +109,7 @@ const ContactPage = () => {
                   className="bg-background hover:bg-accent p-3 rounded-full border border-border transition-all duration-300"
                   whileHover={{ y: -5, scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
+                  onClick={() => triggerConfetti()}
                 >
                   <Github className="h-6 w-6" />
                 </motion.a>
@@ -127,6 +158,19 @@ const ContactPage = () => {
             <h2 className="text-2xl font-semibold mb-4">Our Location</h2>
             <div className="rounded-lg overflow-hidden border border-border">
               <ContactMap token={mapboxToken} />
+            </div>
+            
+            <div className="mt-4">
+              <p className="text-sm text-muted-foreground mb-2">
+                To display the map, please enter your Mapbox token in the field above or visit our office.
+              </p>
+              <Button 
+                onClick={() => {
+                  window.open('https://maps.google.com/?q=123+Innovation+Street,+San+Francisco,+CA', '_blank');
+                }}
+              >
+                Get Directions
+              </Button>
             </div>
           </motion.div>
         </div>

@@ -136,7 +136,8 @@ const QuantumCursor: React.FC<QuantumCursorProps> = ({
       ))}
 
       {/* Magnetic elements effect - this is handled via CSS in particles.css */}
-      <style jsx global>{`
+      <style>
+        {`
         /* Add magnetic effect to buttons and links */
         a, button, .magnetic-element {
           transition: transform 0.2s cubic-bezier(0.23, 1, 0.32, 1);
@@ -146,7 +147,8 @@ const QuantumCursor: React.FC<QuantumCursorProps> = ({
         a:hover, button:hover, .magnetic-element:hover {
           box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
         }
-      `}</style>
+        `}
+      </style>
     </>
   );
 };
