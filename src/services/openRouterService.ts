@@ -35,7 +35,7 @@ export const fetchChatCompletion = async (messages: Message[]): Promise<string> 
       },
       body: JSON.stringify({
         "model": "qwen/qwen3-32b:free",
-        "messages": messages
+        "messages": messages.map(({ role, content }) => ({ role, content }))
       })
     });
 
@@ -58,6 +58,9 @@ export const getSystemPrompt = (): string => {
 - Information about CodeBird Club events, resources, and membership
 - Programming help and guidance on web development, coding practices, and technical skills
 - Keep responses concise, friendly and helpful
+- Use formatting in your responses such as **bold** for emphasis and [text](link) for links when appropriate
+- If asked about events, always mention they can visit /events page or check their profile dashboard
+- Make your responses engaging and visually structured with emojis where appropriate
 - If asked about sensitive information, politely decline and redirect to safer topics`;
 };
 

@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import AnimatedPage from "@/components/AnimatedPage";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -14,12 +14,15 @@ import {
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import Button from "@/components/atoms/Button";
-import { Star, ThumbsUp, MessageSquare, Check } from "lucide-react";
+import { Star, ThumbsUp, MessageSquare, Check, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 // Review categories
 const CATEGORIES = [
@@ -30,39 +33,17 @@ const CATEGORIES = [
   { value: "platform", label: "Website & Platform" },
 ];
 
-// Sample existing reviews for demonstration
-const SAMPLE_REVIEWS = [
-  {
-    id: 1,
-    author: "Sarah L.",
-    category: "techstack",
-    rating: 5,
-    content: "The React and Next.js workshops were incredibly helpful for my career growth. I've learned more in 2 months than I did in a year of self-study.",
-    likes: 12,
-    date: "2025-05-20",
-    avatar: "/placeholder.svg"
-  },
-  {
-    id: 2,
-    author: "Michael T.",
-    category: "events",
-    rating: 4,
-    content: "The hackathon was extremely well organized. The mentors were knowledgeable and the challenges were engaging. Looking forward to the next one!",
-    likes: 8,
-    date: "2025-05-18",
-    avatar: "/placeholder.svg"
-  },
-  {
-    id: 3,
-    author: "Priya K.",
-    category: "community",
-    rating: 5,
-    content: "CodeBird's community is so welcoming and supportive. I've made valuable connections and found collaborators for my projects.",
-    likes: 15,
-    date: "2025-05-15",
-    avatar: "/placeholder.svg"
-  }
-];
+// Define feedback interface
+interface FeedbackItem {
+  id: string;
+  name: string;
+  category: string;
+  rating: number;
+  content: string;
+  likes: number;
+  created_at: string;
+  avatar?: string;
+}
 
 const InferencePage = () => {
   const { toast } = useToast();
@@ -70,10 +51,59 @@ const InferencePage = () => {
   const [selectedCategory, setSelectedCategory] = useState("general");
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState("");
+  const [name, setName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [activeTab, setActiveTab] = useState("submit");
-  const [reviews, setReviews] = useState(SAMPLE_REVIEWS);
+  const queryClient = useQueryClient();
+  
+  // Set default name if user is logged in
+  useEffect(() => {
+    if (profile?.full_name) {
+      setName(profile.full_name);
+    } else if (user?.email) {
+      setName(user.email.split('@')[0]);
+    }
+  }, [profile, user]);
+
+  // Fetch reviews from Supabase
+  const { data: reviews = [], isLoading } = useQuery({
+    queryKey: ['feedback'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('feedback')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      
+      return data.map(item => ({
+        ...item,
+        avatar: profile?.avatar_url || "/placeholder.svg"
+      }));
+    }
+  });
+
+  // Mutation for adding likes
+  const likeMutation = useMutation({
+    mutationFn: async ({ id, likes }: { id: string, likes: number }) => {
+      const { error } = await supabase
+        .from('feedback')
+        .update({ likes: likes + 1 })
+        .eq('id', id);
+      
+      if (error) throw error;
+      
+      return { id, likes: likes + 1 };
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(['feedback'], (old: any) => 
+        old.map((item: FeedbackItem) => 
+          item.id === data.id ? { ...item, likes: data.likes } : item
+        )
+      );
+    }
+  });
 
   const handleRatingClick = (value: number) => {
     setRating(value);
@@ -81,6 +111,15 @@ const InferencePage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!name.trim()) {
+      toast({
+        title: "Name Required",
+        description: "Please provide your name before submitting your feedback.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     if (rating === 0) {
       toast({
@@ -103,23 +142,17 @@ const InferencePage = () => {
     setIsSubmitting(true);
     
     try {
-      // In a real application, we would send this data to a backend
-      // Simulating API call with setTimeout
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Send data to Supabase
+      const { error } = await supabase
+        .from('feedback')
+        .insert({
+          name: name.trim(),
+          category: selectedCategory,
+          rating,
+          content: feedback.trim(),
+        });
       
-      const newReview = {
-        id: Date.now(),
-        author: profile?.full_name || user?.email?.split('@')[0] || "Anonymous",
-        category: selectedCategory,
-        rating,
-        content: feedback,
-        likes: 0,
-        date: new Date().toISOString().split('T')[0],
-        avatar: profile?.avatar_url || "/placeholder.svg"
-      };
-      
-      // Add the new review to our state
-      setReviews(prev => [newReview, ...prev]);
+      if (error) throw error;
       
       setIsSubmitted(true);
       toast({
@@ -133,6 +166,9 @@ const InferencePage = () => {
         setRating(0);
         setFeedback("");
         setActiveTab("browse");
+        
+        // Refresh feedback data
+        queryClient.invalidateQueries({ queryKey: ['feedback'] });
       }, 2000);
       
     } catch (error) {
@@ -147,12 +183,8 @@ const InferencePage = () => {
     }
   };
   
-  const handleLike = (id: number) => {
-    setReviews(prev => 
-      prev.map(review => 
-        review.id === id ? { ...review, likes: review.likes + 1 } : review
-      )
-    );
+  const handleLike = (id: string, currentLikes: number) => {
+    likeMutation.mutate({ id, likes: currentLikes });
   };
 
   return (
@@ -208,6 +240,17 @@ const InferencePage = () => {
                     </motion.div>
                   ) : (
                     <form onSubmit={handleSubmit} className="space-y-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="name">Your Name</Label>
+                        <Input
+                          id="name"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          placeholder="Enter your name"
+                          className="w-full"
+                        />
+                      </div>
+                      
                       <div className="space-y-2">
                         <Label htmlFor="category">Category</Label>
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -291,69 +334,87 @@ const InferencePage = () => {
               <div className="flex justify-between items-center">
                 <h2 className="text-xl font-semibold">Community Reviews</h2>
                 <div className="text-sm text-muted-foreground">
-                  Showing {reviews.length} reviews
+                  {isLoading ? (
+                    <div className="flex items-center">
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Loading reviews...
+                    </div>
+                  ) : (
+                    `Showing ${reviews.length} reviews`
+                  )}
                 </div>
               </div>
               
-              {reviews.map((review) => (
-                <motion.div
-                  key={review.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <Card className="overflow-hidden">
-                    <CardHeader className="pb-2">
-                      <div className="flex justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full overflow-hidden bg-muted">
-                            <img 
-                              src={review.avatar} 
-                              alt={review.author}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          <div>
-                            <CardTitle className="text-md">{review.author}</CardTitle>
-                            <div className="flex items-center text-xs text-muted-foreground mt-1">
-                              <div className="flex">
-                                {Array.from({ length: 5 }).map((_, i) => (
-                                  <Star 
-                                    key={i} 
-                                    size={12} 
-                                    className={i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"} 
-                                  />
-                                ))}
+              {isLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                </div>
+              ) : reviews.length === 0 ? (
+                <Card className="p-8 text-center">
+                  <p className="text-muted-foreground">No reviews yet. Be the first to share your experience!</p>
+                </Card>
+              ) : (
+                reviews.map((review: FeedbackItem) => (
+                  <motion.div
+                    key={review.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Card className="overflow-hidden">
+                      <CardHeader className="pb-2">
+                        <div className="flex justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full overflow-hidden bg-muted">
+                              <img 
+                                src={review.avatar || "/placeholder.svg"} 
+                                alt={review.name}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <div>
+                              <CardTitle className="text-md">{review.name}</CardTitle>
+                              <div className="flex items-center text-xs text-muted-foreground mt-1">
+                                <div className="flex">
+                                  {Array.from({ length: 5 }).map((_, i) => (
+                                    <Star 
+                                      key={i} 
+                                      size={12} 
+                                      className={i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"} 
+                                    />
+                                  ))}
+                                </div>
+                                <span className="mx-2">•</span>
+                                <span>{new Date(review.created_at).toLocaleDateString()}</span>
+                                <span className="mx-2">•</span>
+                                <span className="capitalize">{CATEGORIES.find(c => c.value === review.category)?.label || review.category}</span>
                               </div>
-                              <span className="mx-2">•</span>
-                              <span>{review.date}</span>
-                              <span className="mx-2">•</span>
-                              <span className="capitalize">{CATEGORIES.find(c => c.value === review.category)?.label}</span>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    </CardHeader>
-                    
-                    <CardContent className="py-2">
-                      <p className="text-sm">{review.content}</p>
-                    </CardContent>
-                    
-                    <CardFooter className="pt-2 border-t">
-                      <button 
-                        onClick={() => handleLike(review.id)}
-                        className="flex items-center text-xs text-muted-foreground hover:text-foreground transition-colors"
-                      >
-                        <ThumbsUp size={14} className="mr-1" /> {review.likes}
-                      </button>
+                      </CardHeader>
                       
-                      <button className="flex items-center text-xs text-muted-foreground hover:text-foreground transition-colors ml-4">
-                        <MessageSquare size={14} className="mr-1" /> Reply
-                      </button>
-                    </CardFooter>
-                  </Card>
-                </motion.div>
-              ))}
+                      <CardContent className="py-2">
+                        <p className="text-sm">{review.content}</p>
+                      </CardContent>
+                      
+                      <CardFooter className="pt-2 border-t">
+                        <button 
+                          onClick={() => handleLike(review.id, review.likes)}
+                          className="flex items-center text-xs text-muted-foreground hover:text-foreground transition-colors"
+                          disabled={likeMutation.isPending}
+                        >
+                          <ThumbsUp size={14} className="mr-1" /> {review.likes}
+                        </button>
+                        
+                        <button className="flex items-center text-xs text-muted-foreground hover:text-foreground transition-colors ml-4">
+                          <MessageSquare size={14} className="mr-1" /> Reply
+                        </button>
+                      </CardFooter>
+                    </Card>
+                  </motion.div>
+                ))
+              )}
             </motion.div>
           </TabsContent>
         </Tabs>

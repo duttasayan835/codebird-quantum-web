@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "@/components/atoms/Button";
@@ -6,9 +5,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
-import { Loader2, Send, Minimize2, Bot, BookOpen, Code, Sparkles } from "lucide-react";
+import { Loader2, Send, Minimize2, Bot, BookOpen, Code, Sparkles, Calendar, Users, School } from "lucide-react";
 import { fetchChatCompletion, getSystemPrompt, detectIntent, Message } from "@/services/openRouterService";
 import { useToast } from "@/hooks/use-toast";
+import { Link } from "react-router-dom";
 
 interface AIAssistantProps {
   initialPrompt?: string;
@@ -113,7 +113,12 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
     }
   };
 
-  // Common user queries for quick access
+  // Enhanced text with interactive links
+  const getEnhancedEventsText = () => {
+    return `✨ Check out the CodeBird Club **[Events page](/events)** on our website for the latest schedule of workshops, hackathons, and coding challenges! If you're a member, event updates are also posted in your **[dashboard](/profile)** and featured in our weekly newsletter. For real-time notifications, follow our [@CodeBirdClub](https://twitter.com/codebirdclub) social media handles or chat with a mentor! Let me know if you need help finding anything specific. 🐦💻`;
+  };
+
+  // Common user queries for quick access with interactive content
   const suggestions = [
     "How do I sign up for CodeBird Club?",
     "What events are coming up?",
@@ -126,30 +131,65 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
     inputRef.current?.focus();
   };
 
-  // Preset recommendations based on user context
+  // Improved recommendations with attractive visualizations and transitions
   const recommendations = [
     {
-      title: "Web Development Roadmap",
-      description: "A step-by-step guide to becoming a web developer",
-      icon: <BookOpen className="h-5 w-5" />,
-      query: "Show me a web development roadmap"
+      title: "Upcoming Events & Workshops",
+      description: "Discover our exciting hackathons & tech meetups",
+      icon: <Calendar className="h-5 w-5" />,
+      query: getEnhancedEventsText(),
+      color: "bg-gradient-to-br from-blue-500/20 to-purple-500/20",
+      link: "/events"
     },
     {
-      title: "React Component Patterns",
-      description: "Learn advanced component design in React",
-      icon: <Code className="h-5 w-5" />,
-      query: "Explain React component patterns"
+      title: "Learning Pathways",
+      description: "Structured roadmaps for your coding journey",
+      icon: <School className="h-5 w-5" />,
+      query: "Show me CodeBird's learning resources",
+      color: "bg-gradient-to-br from-amber-500/20 to-red-500/20",
+      link: "/resources"
     },
     {
-      title: "Join our next hackathon",
-      description: "Virtual event starting next weekend",
+      title: "Community Projects",
+      description: "Collaborate with other developers",
+      icon: <Users className="h-5 w-5" />,
+      query: "Tell me about open source projects",
+      color: "bg-gradient-to-br from-green-500/20 to-emerald-500/20",
+      link: "/projects/open-source"
+    },
+    {
+      title: "AI-Powered Coding Help",
+      description: "Get assistance with your programming questions",
       icon: <Sparkles className="h-5 w-5" />,
-      query: "Tell me about the next hackathon"
+      query: "Help me understand React hooks",
+      color: "bg-gradient-to-br from-pink-500/20 to-rose-500/20",
+      link: "/resources/tutorials"
     },
   ];
 
-  const handleRecommendationClick = (query: string) => {
-    setInput(query);
+  const handleRecommendationClick = (recommendation: typeof recommendations[0]) => {
+    if (recommendation.link) {
+      // If there's a direct link, add a message about navigating
+      setMessages(prev => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          content: `I'll take you to ${recommendation.title}. Just a moment...`,
+          role: "assistant",
+          timestamp: new Date()
+        }
+      ]);
+      
+      // Wait a moment before redirecting
+      setTimeout(() => {
+        window.location.href = recommendation.link;
+      }, 1000);
+      
+      return;
+    }
+    
+    // Otherwise handle as a query
+    setInput(recommendation.query);
     setActiveTab("chat");
     setTimeout(() => {
       handleSendMessage();
@@ -183,7 +223,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
       <Tabs defaultValue="chat" value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="w-full">
           <TabsTrigger value="chat" className="flex-1">Chat</TabsTrigger>
-          <TabsTrigger value="recommendations" className="flex-1">Recommendations</TabsTrigger>
+          <TabsTrigger value="recommendations" className="flex-1">Discover</TabsTrigger>
         </TabsList>
 
         {/* Chat Tab */}
@@ -217,7 +257,16 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
                           : "bg-primary text-primary-foreground"
                       }`}
                     >
-                      <div className="whitespace-pre-wrap text-sm">{msg.content}</div>
+                      <div 
+                        className="whitespace-pre-wrap text-sm"
+                        dangerouslySetInnerHTML={{ 
+                          __html: msg.content
+                            .replace(/\*\*\[(.*?)\]\((\/.*?)\)\*\*/g, '<a href="$2" class="font-bold text-primary hover:underline">$1</a>')
+                            .replace(/\[(.*?)\]\((\/.*?)\)/g, '<a href="$2" class="text-primary hover:underline">$1</a>')
+                            .replace(/\[(.*?)\]\((https?:\/\/.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">$1</a>')
+                            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                        }}
+                      />
                     </div>
                   </div>
                 ))}
@@ -229,13 +278,15 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
                     <div className="text-xs text-muted-foreground mb-2">Try asking:</div>
                     <div className="flex flex-wrap gap-2">
                       {suggestions.map((suggestion, idx) => (
-                        <button
+                        <motion.button
                           key={idx}
                           onClick={() => handleSuggestionClick(suggestion)}
                           className="text-xs bg-secondary/50 hover:bg-secondary text-secondary-foreground px-2 py-1 rounded-full transition-colors"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
                         >
                           {suggestion}
-                        </button>
+                        </motion.button>
                       ))}
                     </div>
                   </div>
@@ -276,25 +327,38 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
-              className="p-4 space-y-3"
+              className="p-4 space-y-3 h-[340px] overflow-y-auto"
             >
-              {recommendations.map((rec, index) => (
-                <Card 
-                  key={index} 
-                  className="cursor-pointer hover:bg-accent/50 transition-colors"
-                  onClick={() => handleRecommendationClick(rec.query)}
-                >
-                  <CardContent className="p-3 flex items-center gap-3">
-                    <div className="bg-primary/10 p-2 rounded-full text-primary">
-                      {rec.icon}
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-medium text-sm">{rec.title}</h4>
-                      <p className="text-xs text-muted-foreground">{rec.description}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+              <div className="grid grid-cols-1 gap-4">
+                {recommendations.map((rec, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ 
+                      opacity: 1, 
+                      y: 0, 
+                      transition: { delay: index * 0.1 } 
+                    }}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <Card 
+                      className={`cursor-pointer hover:shadow-md transition-all duration-300 ${rec.color} border-none`}
+                      onClick={() => handleRecommendationClick(rec)}
+                    >
+                      <CardContent className="p-4 flex items-center gap-4">
+                        <div className="bg-primary/20 p-3 rounded-full text-primary">
+                          {rec.icon}
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-medium text-base">{rec.title}</h4>
+                          <p className="text-xs text-muted-foreground mt-1">{rec.description}</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
