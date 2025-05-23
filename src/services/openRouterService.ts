@@ -8,6 +8,8 @@ const SITE_NAME = "CodeBird Club";
 export interface Message {
   role: "user" | "assistant" | "system";
   content: string;
+  id?: string; // Added the id property as optional
+  timestamp?: Date; // Added the timestamp property as optional
 }
 
 export interface ChatCompletionResponse {
