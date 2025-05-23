@@ -5,15 +5,123 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
-import { Loader2, Send, Minimize2, Bot, BookOpen, Code, Sparkles, Calendar, Users, School } from "lucide-react";
-import { fetchChatCompletion, getSystemPrompt, detectIntent, Message } from "@/services/openRouterService";
+import { Loader2, Send, Minimize2, Bot, Calendar, Users, School, Sparkles } from "lucide-react";
+import { fetchChatCompletion, getSystemPrompt, getEnhancedEventsText, Message } from "@/services/openRouterService";
 import { useToast } from "@/hooks/use-toast";
-import { Link } from "react-router-dom";
 
 interface AIAssistantProps {
   initialPrompt?: string;
   onClose?: () => void;
 }
+
+// Typing effect component for rendering text gradually
+const TypingEffect = ({ content }: { content: string }) => {
+  const [displayText, setDisplayText] = useState("");
+  const [isComplete, setIsComplete] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let currentIndex = 0;
+    setDisplayText("");
+    setIsComplete(false);
+    
+    // Choose between character-by-character or word-by-word animation
+    const wordByWord = true; // Set to false for character-by-character
+    
+    if (wordByWord) {
+      // Split by spaces but keep HTML tags intact
+      const words = [];
+      let inTag = false;
+      let currentWord = "";
+      
+      for (let i = 0; i < content.length; i++) {
+        const char = content[i];
+        
+        if (char === '<') inTag = true;
+        if (char === '>') {
+          inTag = false;
+          currentWord += char;
+          words.push(currentWord);
+          currentWord = "";
+          continue;
+        }
+        
+        if (inTag) {
+          currentWord += char;
+        } else if (char === ' ') {
+          words.push(currentWord + ' ');
+          currentWord = "";
+        } else {
+          currentWord += char;
+        }
+      }
+      
+      if (currentWord) words.push(currentWord);
+      
+      const typeNextWord = (index: number) => {
+        if (index >= words.length) {
+          setIsComplete(true);
+          return;
+        }
+        
+        setDisplayText(prev => prev + words[index]);
+        
+        // Adjust typing speed based on word length and punctuation
+        const delay = words[index].includes('.') || words[index].includes('!') || words[index].includes('?') 
+          ? 300 // Longer pause after punctuation
+          : Math.max(50, 100 - words[index].length * 5); // Shorter delay for longer words
+          
+        setTimeout(() => typeNextWord(index + 1), delay);
+      };
+      
+      typeNextWord(0);
+    } else {
+      // Character-by-character animation
+      const typeNextChar = () => {
+        if (currentIndex >= content.length) {
+          setIsComplete(true);
+          return;
+        }
+        
+        const nextChar = content[currentIndex];
+        setDisplayText(prev => prev + nextChar);
+        currentIndex++;
+        
+        // Adjust typing speed based on character
+        const delay = ['.', '!', '?'].includes(nextChar) 
+          ? 300 // Longer pause after punctuation
+          : nextChar === ' ' ? 50 : 20; // Medium pause for spaces, fast for regular chars
+          
+        setTimeout(typeNextChar, delay);
+      };
+      
+      typeNextChar();
+    }
+  }, [content]);
+
+  useEffect(() => {
+    if (containerRef.current && isComplete) {
+      // Ensure all links inside the typed content are working
+      const links = containerRef.current.querySelectorAll('a');
+      links.forEach(link => {
+        if (link.getAttribute('href')?.startsWith('/')) {
+          link.onclick = (e) => {
+            e.preventDefault();
+            window.location.href = link.getAttribute('href') || '';
+          };
+        }
+      });
+    }
+  }, [isComplete]);
+
+  return (
+    <div 
+      ref={containerRef}
+      className="whitespace-pre-wrap text-sm"
+      dangerouslySetInnerHTML={{ __html: displayText }}
+    />
+  );
+};
 
 const AIAssistant: React.FC<AIAssistantProps> = ({
   initialPrompt = "How can I help you today?",
@@ -82,6 +190,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
           content: response,
           role: "assistant",
           timestamp: new Date(),
+          typingEffect: true,
         },
       ]);
     } catch (error) {
@@ -113,11 +222,6 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
     }
   };
 
-  // Enhanced text with interactive links
-  const getEnhancedEventsText = () => {
-    return `✨ Check out the CodeBird Club **[Events page](/events)** on our website for the latest schedule of workshops, hackathons, and coding challenges! If you're a member, event updates are also posted in your **[dashboard](/profile)** and featured in our weekly newsletter. For real-time notifications, follow our [@CodeBirdClub](https://twitter.com/codebirdclub) social media handles or chat with a mentor! Let me know if you need help finding anything specific. 🐦💻`;
-  };
-
   // Common user queries for quick access with interactive content
   const suggestions = [
     "How do I sign up for CodeBird Club?",
@@ -131,7 +235,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
     inputRef.current?.focus();
   };
 
-  // Improved recommendations with attractive visualizations and transitions
+  // Enhanced recommendations with attractive visualizations and transitions
   const recommendations = [
     {
       title: "Upcoming Events & Workshops",
@@ -168,32 +272,37 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
   ];
 
   const handleRecommendationClick = (recommendation: typeof recommendations[0]) => {
+    // First, set active tab to chat
+    setActiveTab("chat");
+    
     if (recommendation.link) {
-      // If there's a direct link, add a message about navigating
+      // Add AI message about navigation
       setMessages(prev => [
         ...prev,
         {
           id: Date.now().toString(),
-          content: `I'll take you to ${recommendation.title}. Just a moment...`,
+          content: `I'll help you explore ${recommendation.title}. Let me guide you there...`,
           role: "assistant",
-          timestamp: new Date()
+          timestamp: new Date(),
+          typingEffect: true
         }
       ]);
       
-      // Wait a moment before redirecting
+      // Wait for the typing effect before redirecting
       setTimeout(() => {
         window.location.href = recommendation.link;
-      }, 1000);
+      }, 2000);
       
       return;
     }
     
-    // Otherwise handle as a query
-    setInput(recommendation.query);
-    setActiveTab("chat");
-    setTimeout(() => {
-      handleSendMessage();
-    }, 100);
+    // If it's a query, handle as a message
+    if (recommendation.query) {
+      setInput(recommendation.query);
+      setTimeout(() => {
+        handleSendMessage();
+      }, 100);
+    }
   };
 
   return (
@@ -250,24 +359,25 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
                         </div>
                       </Avatar>
                     )}
-                    <div
+                    <motion.div
                       className={`max-w-[80%] p-3 rounded-lg ${
                         msg.role === "assistant"
                           ? "bg-secondary text-secondary-foreground"
                           : "bg-primary text-primary-foreground"
                       }`}
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={{ duration: 0.3 }}
                     >
-                      <div 
-                        className="whitespace-pre-wrap text-sm"
-                        dangerouslySetInnerHTML={{ 
-                          __html: msg.content
-                            .replace(/\*\*\[(.*?)\]\((\/.*?)\)\*\*/g, '<a href="$2" class="font-bold text-primary hover:underline">$1</a>')
-                            .replace(/\[(.*?)\]\((\/.*?)\)/g, '<a href="$2" class="text-primary hover:underline">$1</a>')
-                            .replace(/\[(.*?)\]\((https?:\/\/.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">$1</a>')
-                            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                        }}
-                      />
-                    </div>
+                      {msg.typingEffect ? (
+                        <TypingEffect content={msg.content} />
+                      ) : (
+                        <div 
+                          className="whitespace-pre-wrap text-sm"
+                          dangerouslySetInnerHTML={{ __html: msg.content }}
+                        />
+                      )}
+                    </motion.div>
                   </div>
                 ))}
                 <div ref={messagesEndRef} />
@@ -339,18 +449,34 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
                       y: 0, 
                       transition: { delay: index * 0.1 } 
                     }}
-                    whileHover={{ scale: 1.03 }}
+                    whileHover={{ 
+                      scale: 1.03,
+                      boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)"
+                    }}
                     whileTap={{ scale: 0.98 }}
                   >
                     <Card 
-                      className={`cursor-pointer hover:shadow-md transition-all duration-300 ${rec.color} border-none`}
+                      className={`cursor-pointer transition-all duration-300 ${rec.color} border-none overflow-hidden`}
                       onClick={() => handleRecommendationClick(rec)}
                     >
-                      <CardContent className="p-4 flex items-center gap-4">
-                        <div className="bg-primary/20 p-3 rounded-full text-primary">
+                      <CardContent className="p-4 flex items-center gap-4 relative">
+                        {/* Animated background effect */}
+                        <motion.div 
+                          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"
+                          animate={{ 
+                            x: ["100%", "-100%"]
+                          }}
+                          transition={{ 
+                            repeat: Infinity,
+                            duration: 2,
+                            ease: "linear"
+                          }}
+                        />
+                        
+                        <div className="bg-primary/20 p-3 rounded-full text-primary relative z-10">
                           {rec.icon}
                         </div>
-                        <div className="flex-1">
+                        <div className="flex-1 relative z-10">
                           <h4 className="font-medium text-base">{rec.title}</h4>
                           <p className="text-xs text-muted-foreground mt-1">{rec.description}</p>
                         </div>

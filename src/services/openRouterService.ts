@@ -8,8 +8,9 @@ const SITE_NAME = "CodeBird Club";
 export interface Message {
   role: "user" | "assistant" | "system";
   content: string;
-  id?: string; // Added the id property as optional
-  timestamp?: Date; // Added the timestamp property as optional
+  id?: string;
+  timestamp?: Date;
+  typingEffect?: boolean;
 }
 
 export interface ChatCompletionResponse {
@@ -22,6 +23,35 @@ export interface ChatCompletionResponse {
     finish_reason: string;
   }[];
 }
+
+// Pre-process the text to convert markdown to HTML
+export const processMarkdownText = (text: string): string => {
+  return text
+    // Convert markdown headings to styled elements
+    .replace(/^###\s+(.*?)$/gm, '<span class="text-primary font-bold text-lg">$1</span>')
+    .replace(/^##\s+(.*?)$/gm, '<span class="text-primary font-bold text-xl">$1</span>')
+    .replace(/^#\s+(.*?)$/gm, '<span class="text-primary font-bold text-2xl">$1</span>')
+    
+    // Convert code blocks
+    .replace(/```(\w*)\n([\s\S]*?)\n```/g, '<div class="bg-muted/30 p-3 rounded-md my-2 font-mono text-sm overflow-x-auto">$2</div>')
+    
+    // Convert inline code
+    .replace(/`([^`]+)`/g, '<code class="bg-muted/30 px-1 py-0.5 rounded text-accent-foreground font-mono text-sm">$1</code>')
+    
+    // Convert bold
+    .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold">$1</strong>')
+    
+    // Convert italic
+    .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
+    
+    // Convert lists
+    .replace(/^(\d+)\.\s+(.*?)$/gm, '<div class="flex gap-2 my-1"><span class="text-primary font-medium">$1.</span><span>$2</span></div>')
+    .replace(/^-\s+(.*?)$/gm, '<div class="flex gap-2 my-1"><span class="text-primary">•</span><span>$1</span></div>')
+    
+    // Convert links (including special format for internal routes)
+    .replace(/\[(.*?)\]\((\/.*?)\)/g, '<a href="$2" class="text-primary underline hover:text-primary/80 transition-colors">$1</a>')
+    .replace(/\[(.*?)\]\((https?:\/\/.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-primary underline hover:text-primary/80 transition-colors">$1</a>');
+};
 
 export const fetchChatCompletion = async (messages: Message[]): Promise<string> => {
   try {
@@ -44,7 +74,7 @@ export const fetchChatCompletion = async (messages: Message[]): Promise<string> 
     }
 
     const data: ChatCompletionResponse = await response.json();
-    return data.choices[0].message.content;
+    return processMarkdownText(data.choices[0].message.content);
   } catch (error) {
     console.error("Error fetching chat completion:", error);
     return "Sorry, I encountered an error. Please try again later.";
@@ -58,9 +88,13 @@ export const getSystemPrompt = (): string => {
 - Information about CodeBird Club events, resources, and membership
 - Programming help and guidance on web development, coding practices, and technical skills
 - Keep responses concise, friendly and helpful
-- Use formatting in your responses such as **bold** for emphasis and [text](link) for links when appropriate
+- For better readability and engagement:
+  - Use proper markdown formatting like headings with # or ##
+  - Use **bold** for emphasis
+  - Format code with \`inline code\` or \`\`\`code blocks\`\`\`
+  - Use [text](/route) for internal links (use / prefix) and [text](https://example.com) for external links
+  - Use emojis where appropriate 😊
 - If asked about events, always mention they can visit /events page or check their profile dashboard
-- Make your responses engaging and visually structured with emojis where appropriate
 - If asked about sensitive information, politely decline and redirect to safer topics`;
 };
 
@@ -77,4 +111,9 @@ export const detectIntent = (input: string): string => {
   }
   
   return 'general';
+};
+
+// Enhanced text with interactive links for events
+export const getEnhancedEventsText = (): string => {
+  return `✨ Check out the CodeBird Club [Events page](/events) on our website for the latest schedule of workshops, hackathons, and coding challenges! If you're a member, event updates are also posted in your [dashboard](/profile) and featured in our weekly newsletter. For real-time notifications, follow our [@CodeBirdClub](https://twitter.com/codebirdclub) social media handles or chat with a mentor! Let me know if you need help finding anything specific. 🐦💻`;
 };
