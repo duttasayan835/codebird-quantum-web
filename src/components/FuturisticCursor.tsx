@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 
 const FuturisticCursor: React.FC = () => {
@@ -75,14 +76,14 @@ const FuturisticCursor: React.FC = () => {
 
   // Determine cursor styles based on state
   const cursorSize = linkHovered ? 40 : 20;
-  const cursorStyle = {
+  const cursorStyle: React.CSSProperties = {
     left: `${position.x}px`,
     top: `${position.y}px`,
     width: `${cursorSize}px`,
     height: `${cursorSize}px`,
     opacity: visible ? 1 : 0,
     transform: `translate(-50%, -50%) scale(${clicked ? 0.8 : 1})`,
-    mixBlendMode: linkHovered ? 'difference' : 'normal',
+    mixBlendMode: linkHovered ? 'difference' : 'normal' as React.CSSProperties['mixBlendMode'],
     backgroundColor: linkHovered 
       ? 'rgb(255, 255, 255)' 
       : 'rgba(139, 92, 246, 0.4)',
@@ -131,7 +132,8 @@ const FuturisticCursor: React.FC = () => {
       ))}
       
       {/* Hide default cursor */}
-      <style jsx global>{`
+      <style>
+        {`
         * {
           cursor: none !important;
         }
@@ -144,7 +146,8 @@ const FuturisticCursor: React.FC = () => {
             display: none !important;
           }
         }
-      `}</style>
+        `}
+      </style>
     </>
   );
 };
