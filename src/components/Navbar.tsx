@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, ChevronDown, LogOut, User, Sparkles } from "lucide-react";
+import { Menu, X, ChevronDown, LogOut, User, Sparkles, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { 
@@ -68,17 +68,36 @@ const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
+    const checkAdmin = () => {
+      const adminAuth = localStorage.getItem("adminAuthenticated");
+      setIsAdmin(adminAuth === "true");
+    };
+    
+    checkAdmin();
+    window.addEventListener("storage", checkAdmin);
+    
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
+    
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("storage", checkAdmin);
+    };
   }, []);
 
   const handleSignOut = async () => {
     await signOut();
+  };
+
+  const handleAdminSignOut = () => {
+    localStorage.removeItem("adminAuthenticated");
+    setIsAdmin(false);
+    navigate("/");
   };
 
   const getUserInitials = () => {
@@ -130,7 +149,26 @@ const Navbar = () => {
             </NavItem>
             <NavItem to="/contact">Contact</NavItem>
             
-            {user ? (
+            {/* Admin Login and User Login conditional rendering */}
+            {isAdmin ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger className="ml-4 flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary to-secondary rounded-full text-white transition-all hover:shadow-lg hover:shadow-primary/20">
+                  <Shield className="h-4 w-4 mr-1" />
+                  <span>Admin</span>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="glass-card">
+                  <DropdownMenuItem className="cursor-pointer" onClick={() => navigate('/admin')}>
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Dashboard</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive" onClick={handleAdminSignOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Admin Logout</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger className="ml-4 flex items-center gap-2 px-2">
                   <Avatar className="h-8 w-8 border border-white/20">
@@ -153,12 +191,21 @@ const Navbar = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Link
-                to="/auth"
-                className="ml-4 px-6 py-2 bg-primary hover:bg-primary/90 rounded-full text-white transition-all shadow-lg hover:shadow-primary/40"
-              >
-                Login
-              </Link>
+              <div className="flex items-center space-x-2">
+                <Link
+                  to="/auth"
+                  className="px-6 py-2 bg-primary hover:bg-primary/90 rounded-full text-white transition-all shadow-lg hover:shadow-primary/40"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/admin-login"
+                  className="px-4 py-2 bg-black/50 backdrop-blur-md border border-white/10 hover:bg-white/10 rounded-full transition-all flex items-center"
+                >
+                  <Shield className="h-4 w-4 mr-2 text-primary" />
+                  Admin
+                </Link>
+              </div>
             )}
           </div>
           
@@ -190,7 +237,23 @@ const Navbar = () => {
                 </Link>
                 <Link to="/contact" className="px-4 py-3 hover:bg-white/10 rounded-lg" onClick={() => setIsMobileMenuOpen(false)}>Contact</Link>
                 
-                {user ? (
+                {isAdmin ? (
+                  <>
+                    <Link to="/admin" className="px-4 py-3 hover:bg-white/10 rounded-lg flex items-center" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Shield className="h-4 w-4 mr-2 text-primary" />
+                      Admin Dashboard
+                    </Link>
+                    <button 
+                      className="px-4 py-3 text-left text-destructive hover:bg-white/10 rounded-lg" 
+                      onClick={() => {
+                        handleAdminSignOut();
+                        setIsMobileMenuOpen(false);
+                      }}
+                    >
+                      Admin Logout
+                    </button>
+                  </>
+                ) : user ? (
                   <>
                     <Link to="/profile" className="px-4 py-3 hover:bg-white/10 rounded-lg" onClick={() => setIsMobileMenuOpen(false)}>
                       Profile
@@ -206,13 +269,23 @@ const Navbar = () => {
                     </button>
                   </>
                 ) : (
-                  <Link
-                    to="/auth"
-                    className="mt-4 px-6 py-3 bg-primary hover:bg-primary/90 rounded-lg text-white text-center transition-all shadow-lg"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Login
-                  </Link>
+                  <div className="flex flex-col gap-2 mt-2">
+                    <Link
+                      to="/auth"
+                      className="px-6 py-3 bg-primary hover:bg-primary/90 rounded-lg text-white text-center transition-all shadow-lg"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Login
+                    </Link>
+                    <Link
+                      to="/admin-login"
+                      className="px-6 py-3 bg-black/50 backdrop-blur-md border border-white/10 hover:bg-white/10 rounded-lg text-center transition-all flex items-center justify-center"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <Shield className="h-4 w-4 mr-2 text-primary" />
+                      Admin Login
+                    </Link>
+                  </div>
                 )}
               </nav>
             </div>

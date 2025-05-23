@@ -28,12 +28,12 @@ export interface ChatCompletionResponse {
 export const processMarkdownText = (text: string): string => {
   return text
     // Convert markdown headings to styled elements
-    .replace(/^###\s+(.*?)$/gm, '<span class="text-primary font-bold text-lg">$1</span>')
-    .replace(/^##\s+(.*?)$/gm, '<span class="text-primary font-bold text-xl">$1</span>')
-    .replace(/^#\s+(.*?)$/gm, '<span class="text-primary font-bold text-2xl">$1</span>')
+    .replace(/^###\s+(.*?)$/gm, '<h3 class="text-primary font-bold text-lg mt-4 mb-2">$1</h3>')
+    .replace(/^##\s+(.*?)$/gm, '<h2 class="text-primary font-bold text-xl mt-5 mb-3">$1</h2>')
+    .replace(/^#\s+(.*?)$/gm, '<h1 class="text-primary font-bold text-2xl mt-6 mb-4">$1</h1>')
     
     // Convert code blocks
-    .replace(/```(\w*)\n([\s\S]*?)\n```/g, '<div class="bg-muted/30 p-3 rounded-md my-2 font-mono text-sm overflow-x-auto">$2</div>')
+    .replace(/```(\w*)\n([\s\S]*?)\n```/g, '<div class="bg-muted/30 p-3 rounded-md my-3 font-mono text-sm overflow-x-auto">$2</div>')
     
     // Convert inline code
     .replace(/`([^`]+)`/g, '<code class="bg-muted/30 px-1 py-0.5 rounded text-accent-foreground font-mono text-sm">$1</code>')
@@ -50,7 +50,10 @@ export const processMarkdownText = (text: string): string => {
     
     // Convert links (including special format for internal routes)
     .replace(/\[(.*?)\]\((\/.*?)\)/g, '<a href="$2" class="text-primary underline hover:text-primary/80 transition-colors">$1</a>')
-    .replace(/\[(.*?)\]\((https?:\/\/.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-primary underline hover:text-primary/80 transition-colors">$1</a>');
+    .replace(/\[(.*?)\]\((https?:\/\/.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-primary underline hover:text-primary/80 transition-colors">$1</a>')
+    
+    // Add paragraph spacing
+    .replace(/\n\n/g, '<div class="my-3"></div>');
 };
 
 export const fetchChatCompletion = async (messages: Message[]): Promise<string> => {
@@ -89,13 +92,14 @@ export const getSystemPrompt = (): string => {
 - Programming help and guidance on web development, coding practices, and technical skills
 - Keep responses concise, friendly and helpful
 - For better readability and engagement:
-  - Use proper markdown formatting like headings with # or ##
-  - Use **bold** for emphasis
+  - Use proper headings with # or ## for section titles
+  - Use **bold** for emphasis on important points
   - Format code with \`inline code\` or \`\`\`code blocks\`\`\`
   - Use [text](/route) for internal links (use / prefix) and [text](https://example.com) for external links
-  - Use emojis where appropriate 😊
+  - Use emojis where appropriate to make your responses friendly 😊
 - If asked about events, always mention they can visit /events page or check their profile dashboard
-- If asked about sensitive information, politely decline and redirect to safer topics`;
+- If asked about sensitive information, politely decline and redirect to safer topics
+- Make your responses visually engaging by using proper formatting and structure`;
 };
 
 // Function to detect user intent for better responses

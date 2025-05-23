@@ -23,6 +23,7 @@ import GalleryPage from "./pages/GalleryPage";
 import ContactPage from "./pages/ContactPage";
 import JoinPage from "./pages/JoinPage";
 import AdminPage from "./pages/AdminPage";
+import AdminLogin from "./pages/AdminLogin";
 import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import CookiesPage from "./pages/CookiesPage";
@@ -82,6 +83,7 @@ const App = () => {
                 <Route path="/join" element={<JoinPage />} />
                 <Route path="/inference" element={<InferencePage />} />
                 <Route path="/admin" element={<AdminPage />} />
+                <Route path="/admin-login" element={<AdminLogin />} />
                 <Route path="/terms" element={<TermsPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />
                 <Route path="/cookies" element={<CookiesPage />} />
