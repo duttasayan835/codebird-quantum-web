@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, ChevronDown, LogOut, User } from "lucide-react";
+import { Menu, X, ChevronDown, LogOut, User, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { 
@@ -121,6 +122,12 @@ const Navbar = () => {
             <NavItem to="/resources">Resources</NavItem>
             <NavItem to="/blog">Blog</NavItem>
             <NavItem to="/gallery">Gallery</NavItem>
+            <NavItem to="/inference">
+              <div className="flex items-center">
+                <Sparkles className="h-4 w-4 mr-1 text-yellow-400" />
+                Inference
+              </div>
+            </NavItem>
             <NavItem to="/contact">Contact</NavItem>
             
             {user ? (
@@ -177,6 +184,10 @@ const Navbar = () => {
                 <Link to="/resources" className="px-4 py-3 hover:bg-white/10 rounded-lg" onClick={() => setIsMobileMenuOpen(false)}>Resources</Link>
                 <Link to="/blog" className="px-4 py-3 hover:bg-white/10 rounded-lg" onClick={() => setIsMobileMenuOpen(false)}>Blog</Link>
                 <Link to="/gallery" className="px-4 py-3 hover:bg-white/10 rounded-lg" onClick={() => setIsMobileMenuOpen(false)}>Gallery</Link>
+                <Link to="/inference" className="px-4 py-3 hover:bg-white/10 rounded-lg flex items-center" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Sparkles className="h-4 w-4 mr-2 text-yellow-400" />
+                  Inference
+                </Link>
                 <Link to="/contact" className="px-4 py-3 hover:bg-white/10 rounded-lg" onClick={() => setIsMobileMenuOpen(false)}>Contact</Link>
                 
                 {user ? (

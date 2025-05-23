@@ -29,6 +29,7 @@ import CookiesPage from "./pages/CookiesPage";
 import NotFound from "./pages/NotFound";
 import AuthPage from "./pages/AuthPage";
 import ProfilePage from "./pages/ProfilePage";
+import InferencePage from "./pages/InferencePage";
 import QuantumCursor from "./components/QuantumCursor";
 import AIAssistant from "./components/AIAssistant";
 
@@ -79,6 +80,7 @@ const App = () => {
                 <Route path="/gallery" element={<GalleryPage />} />
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/join" element={<JoinPage />} />
+                <Route path="/inference" element={<InferencePage />} />
                 <Route path="/admin" element={<AdminPage />} />
                 <Route path="/terms" element={<TermsPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />

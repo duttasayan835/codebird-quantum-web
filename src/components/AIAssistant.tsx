@@ -7,25 +7,19 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { Loader2, Send, Minimize2, Bot, BookOpen, Code, Sparkles } from "lucide-react";
-
-interface Message {
-  id: string;
-  content: string;
-  role: "user" | "assistant";
-  timestamp: Date;
-}
+import { fetchChatCompletion, getSystemPrompt, detectIntent, Message } from "@/services/openRouterService";
+import { useToast } from "@/hooks/use-toast";
 
 interface AIAssistantProps {
   initialPrompt?: string;
-  apiKey?: string;
   onClose?: () => void;
 }
 
 const AIAssistant: React.FC<AIAssistantProps> = ({
   initialPrompt = "How can I help you today?",
-  apiKey,
   onClose,
 }) => {
+  const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
@@ -36,9 +30,8 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [apiKeyInput, setApiKeyInput] = useState(apiKey || "");
-  const [isSettingApiKey, setIsSettingApiKey] = useState(!apiKey);
   const [activeTab, setActiveTab] = useState<string>("chat");
+  const [showSuggestions, setShowSuggestions] = useState(true);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -50,13 +43,11 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
 
   // Focus input on mount
   useEffect(() => {
-    if (!isSettingApiKey) {
-      inputRef.current?.focus();
-    }
-  }, [isSettingApiKey]);
+    inputRef.current?.focus();
+  }, []);
 
   const handleSendMessage = async () => {
-    if (!input.trim() || isLoading || !apiKeyInput) return;
+    if (!input.trim() || isLoading) return;
 
     // Add user message
     const userMessage: Message = {
@@ -69,25 +60,38 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
+    setShowSuggestions(false);
 
     try {
-      // Here we would normally use a real AI service
-      // Since this is a demo, we'll simulate a response
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      const mockResponse = getMockResponse(input);
+      // Format messages for the API, including system prompt
+      const apiMessages: Message[] = [
+        { role: "system", content: getSystemPrompt() },
+        ...messages
+          .filter((m) => m.id !== "welcome") // Skip initial welcome message
+          .map(({ role, content }) => ({ role, content })),
+        { role: "user", content: input }
+      ];
+      
+      // Call OpenRouter API
+      const response = await fetchChatCompletion(apiMessages);
 
       setMessages((prev) => [
         ...prev,
         {
           id: (Date.now() + 1).toString(),
-          content: mockResponse,
+          content: response,
           role: "assistant",
           timestamp: new Date(),
         },
       ]);
     } catch (error) {
       console.error("Error calling AI service:", error);
+      toast({
+        title: "Error",
+        description: "Sorry, I encountered an error. Please try again later.",
+        variant: "destructive",
+      });
+      
       setMessages((prev) => [
         ...prev,
         {
@@ -102,32 +106,6 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
     }
   };
 
-  const getMockResponse = (query: string): string => {
-    const normalizedQuery = query.toLowerCase();
-    
-    if (normalizedQuery.includes("hello") || normalizedQuery.includes("hi")) {
-      return "Hello! I'm your Codebird assistant. How can I help you today?";
-    }
-    
-    if (normalizedQuery.includes("event")) {
-      return "Our next event is a Web3 Hackathon on June 15th. Would you like me to sign you up?";
-    }
-    
-    if (normalizedQuery.includes("javascript") || normalizedQuery.includes("js")) {
-      return "JavaScript is a versatile language! Here's a code snippet to get you started:\n\n```javascript\nconst greeting = 'Hello, Codebird!';\nconsole.log(greeting);\n```";
-    }
-    
-    if (normalizedQuery.includes("join")) {
-      return "To join the Codebird Club, visit our /join page and fill out the application form. We're always looking for passionate developers!";
-    }
-    
-    if (normalizedQuery.includes("code") || normalizedQuery.includes("help")) {
-      return "Need help with code? Our resources page has tutorials on React, Node.js, and more. Or you can ask me a specific coding question!";
-    }
-
-    return "I'm not sure I understand. Could you provide more details or rephrase your question?";
-  };
-
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -135,11 +113,17 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
     }
   };
 
-  const saveApiKey = () => {
-    if (!apiKeyInput.trim()) return;
-    // In a real app, we'd store this securely
-    console.log("API Key saved:", apiKeyInput);
-    setIsSettingApiKey(false);
+  // Common user queries for quick access
+  const suggestions = [
+    "How do I sign up for CodeBird Club?",
+    "What events are coming up?",
+    "Tell me about learning resources",
+    "Help me with React coding"
+  ];
+
+  const handleSuggestionClick = (suggestion: string) => {
+    setInput(suggestion);
+    inputRef.current?.focus();
   };
 
   // Preset recommendations based on user context
@@ -148,18 +132,29 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
       title: "Web Development Roadmap",
       description: "A step-by-step guide to becoming a web developer",
       icon: <BookOpen className="h-5 w-5" />,
+      query: "Show me a web development roadmap"
     },
     {
       title: "React Component Patterns",
       description: "Learn advanced component design in React",
       icon: <Code className="h-5 w-5" />,
+      query: "Explain React component patterns"
     },
     {
       title: "Join our next hackathon",
       description: "Virtual event starting next weekend",
       icon: <Sparkles className="h-5 w-5" />,
+      query: "Tell me about the next hackathon"
     },
   ];
+
+  const handleRecommendationClick = (query: string) => {
+    setInput(query);
+    setActiveTab("chat");
+    setTimeout(() => {
+      handleSendMessage();
+    }, 100);
+  };
 
   return (
     <motion.div
@@ -185,116 +180,125 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
         </Button>
       </div>
 
-      {isSettingApiKey ? (
-        <div className="p-4 space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Please enter your Qwen3 API key to continue. You can get one from the Qwen3 dashboard.
-          </p>
-          <Textarea
-            value={apiKeyInput}
-            onChange={(e) => setApiKeyInput(e.target.value)}
-            placeholder="Enter your API key..."
-            className="resize-none"
-            autoFocus
-          />
-          <Button onClick={saveApiKey} className="w-full">
-            Save API Key
-          </Button>
-        </div>
-      ) : (
-        <>
-          <Tabs defaultValue="chat" value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="w-full">
-              <TabsTrigger value="chat" className="flex-1">Chat</TabsTrigger>
-              <TabsTrigger value="recommendations" className="flex-1">Recommendations</TabsTrigger>
-            </TabsList>
+      <Tabs defaultValue="chat" value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="w-full">
+          <TabsTrigger value="chat" className="flex-1">Chat</TabsTrigger>
+          <TabsTrigger value="recommendations" className="flex-1">Recommendations</TabsTrigger>
+        </TabsList>
 
-            {/* Chat Tab */}
-            <AnimatePresence mode="wait">
-              {activeTab === "chat" && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  <div className="h-80 overflow-y-auto p-4 space-y-4">
-                    {messages.map((msg) => (
-                      <div
-                        key={msg.id}
-                        className={`flex ${
-                          msg.role === "assistant" ? "justify-start" : "justify-end"
-                        }`}
-                      >
-                        <div
-                          className={`max-w-[80%] p-3 rounded-lg ${
-                            msg.role === "assistant"
-                              ? "bg-secondary text-secondary-foreground"
-                              : "bg-primary text-primary-foreground"
-                          }`}
-                        >
-                          <div className="whitespace-pre-wrap text-sm">{msg.content}</div>
+        {/* Chat Tab */}
+        <AnimatePresence mode="wait">
+          {activeTab === "chat" && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+            >
+              <div className="h-80 overflow-y-auto p-4 space-y-4">
+                {messages.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={`flex ${
+                      msg.role === "assistant" ? "justify-start" : "justify-end"
+                    }`}
+                  >
+                    {msg.role === "assistant" && (
+                      <Avatar className="h-8 w-8 mr-2">
+                        <div className="bg-primary text-primary-foreground rounded-full w-full h-full flex items-center justify-center">
+                          <Bot size={14} />
                         </div>
-                      </div>
-                    ))}
-                    <div ref={messagesEndRef} />
-                  </div>
-
-                  <div className="p-4 border-t">
-                    <div className="flex gap-2">
-                      <Textarea
-                        ref={inputRef}
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        placeholder="Type your message..."
-                        className="resize-none"
-                        rows={1}
-                      />
-                      <Button
-                        onClick={handleSendMessage}
-                        disabled={isLoading || !input.trim()}
-                        size="icon"
-                      >
-                        {isLoading ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Send className="h-4 w-4" />
-                        )}
-                      </Button>
+                      </Avatar>
+                    )}
+                    <div
+                      className={`max-w-[80%] p-3 rounded-lg ${
+                        msg.role === "assistant"
+                          ? "bg-secondary text-secondary-foreground"
+                          : "bg-primary text-primary-foreground"
+                      }`}
+                    >
+                      <div className="whitespace-pre-wrap text-sm">{msg.content}</div>
                     </div>
                   </div>
-                </motion.div>
-              )}
+                ))}
+                <div ref={messagesEndRef} />
+                
+                {/* Quick suggestions */}
+                {showSuggestions && messages.length === 1 && (
+                  <div className="mt-4">
+                    <div className="text-xs text-muted-foreground mb-2">Try asking:</div>
+                    <div className="flex flex-wrap gap-2">
+                      {suggestions.map((suggestion, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => handleSuggestionClick(suggestion)}
+                          className="text-xs bg-secondary/50 hover:bg-secondary text-secondary-foreground px-2 py-1 rounded-full transition-colors"
+                        >
+                          {suggestion}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
 
-              {/* Recommendations Tab */}
-              {activeTab === "recommendations" && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                  className="p-4 space-y-3"
+              <div className="p-4 border-t">
+                <div className="flex gap-2">
+                  <Textarea
+                    ref={inputRef}
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Type your message..."
+                    className="resize-none"
+                    rows={1}
+                  />
+                  <Button
+                    onClick={handleSendMessage}
+                    disabled={isLoading || !input.trim()}
+                    size="icon"
+                  >
+                    {isLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Send className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Recommendations Tab */}
+          {activeTab === "recommendations" && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="p-4 space-y-3"
+            >
+              {recommendations.map((rec, index) => (
+                <Card 
+                  key={index} 
+                  className="cursor-pointer hover:bg-accent/50 transition-colors"
+                  onClick={() => handleRecommendationClick(rec.query)}
                 >
-                  {recommendations.map((rec, index) => (
-                    <Card key={index} className="cursor-pointer hover:bg-accent/50 transition-colors">
-                      <CardContent className="p-3 flex items-center gap-3">
-                        <div className="bg-primary/10 p-2 rounded-full text-primary">
-                          {rec.icon}
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-medium text-sm">{rec.title}</h4>
-                          <p className="text-xs text-muted-foreground">{rec.description}</p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </Tabs>
-        </>
-      )}
+                  <CardContent className="p-3 flex items-center gap-3">
+                    <div className="bg-primary/10 p-2 rounded-full text-primary">
+                      {rec.icon}
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-medium text-sm">{rec.title}</h4>
+                      <p className="text-xs text-muted-foreground">{rec.description}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </Tabs>
     </motion.div>
   );
 };
