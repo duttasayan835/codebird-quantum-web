@@ -33,6 +33,8 @@ import {
 import { Card } from "@/components/ui/card";
 import { ContentManagement } from "@/components/admin/ContentManagement";
 import { EventsManagement } from "@/components/admin/EventsManagement";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 // 3D Holographic Background
 const HolographicBackground = () => {
@@ -476,7 +478,30 @@ const AdminPage = () => {
   const [activeSection, setActiveSection] = useState<string>("dashboard");
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, signOut } = useAuth();
+  
+  // Fetch real dashboard data
+  const { data: dashboardStats } = useQuery({
+    queryKey: ["dashboard-stats"],
+    queryFn: async () => {
+      const [eventsRes, projectsRes, teamRes, resourcesRes] = await Promise.all([
+        supabase.from("events").select("*"),
+        supabase.from("projects").select("*"),
+        supabase.from("team_members").select("*").eq("active", true),
+        supabase.from("resources").select("*")
+      ]);
+
+      return {
+        events: eventsRes.data?.length || 0,
+        projects: projectsRes.data?.length || 0,
+        teamMembers: teamRes.data?.length || 0,
+        resources: resourcesRes.data?.length || 0,
+        upcomingEvents: eventsRes.data?.filter(e => e.status === 'upcoming').length || 0,
+        featuredProjects: projectsRes.data?.filter(p => p.featured).length || 0
+      };
+    },
+    enabled: !!user && profile?.role === 'admin'
+  });
   
   useEffect(() => {
     if (!loading && (!user || profile?.role !== 'admin')) {
@@ -485,16 +510,17 @@ const AdminPage = () => {
         description: "Admin privileges required to access this interface.",
         variant: "destructive",
       });
-      navigate("/");
+      navigate("/admin-login");
     }
   }, [user, profile, loading, navigate, toast]);
   
-  const handleLogout = () => {
-    navigate("/");
-    toast({
-      title: "🌌 Session Terminated",
-      description: "Admin neural connection successfully disconnected.",
-    });
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate("/");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
   };
 
   if (loading || !user || profile?.role !== 'admin') {
@@ -512,12 +538,12 @@ const AdminPage = () => {
   const sidebarItems = [
     { id: "dashboard", icon: <LayoutDashboard size={20} />, label: "Dashboard" },
     { id: "content", icon: <Globe size={20} />, label: "Site Content" },
-    { id: "events", icon: <Calendar size={20} />, label: "Events" },
-    { id: "projects", icon: <FolderOpen size={20} />, label: "Projects" },
-    { id: "resources", icon: <BookOpen size={20} />, label: "Resources" },
+    { id: "events", icon: <Calendar size={20} />, label: "Events", count: dashboardStats?.upcomingEvents },
+    { id: "projects", icon: <FolderOpen size={20} />, label: "Projects", count: dashboardStats?.projects },
+    { id: "resources", icon: <BookOpen size={20} />, label: "Resources", count: dashboardStats?.resources },
     { id: "blog", icon: <FileText size={20} />, label: "Blog Posts" },
     { id: "gallery", icon: <Image size={20} />, label: "Gallery" },
-    { id: "team", icon: <Users size={20} />, label: "Team Members" },
+    { id: "team", icon: <Users size={20} />, label: "Team Members", count: dashboardStats?.teamMembers },
     { id: "settings", icon: <Settings size={20} />, label: "Settings" }
   ];
 
@@ -629,6 +655,7 @@ const AdminPage = () => {
                         label={item.label}
                         active={activeSection === item.id}
                         onClick={() => setActiveSection(item.id)}
+                        count={item.count}
                       />
                     ))}
                   </nav>
@@ -656,25 +683,25 @@ const AdminPage = () => {
                       {/* Main Stats */}
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <StatsCard
-                          title="Active Neural Nodes"
-                          value="1,245"
+                          title="Total Events"
+                          value={dashboardStats?.events || 0}
                           change="+12.5%"
+                          icon={<Calendar size={24} />}
+                          trend="up"
+                        />
+                        <StatsCard
+                          title="Projects"
+                          value={dashboardStats?.projects || 0}
+                          change="+5.2%"
+                          icon={<FolderOpen size={24} />}
+                          trend="up"
+                        />
+                        <StatsCard
+                          title="Team Members"
+                          value={dashboardStats?.teamMembers || 0}
+                          change="+2.1%"
                           icon={<Users size={24} />}
                           trend="up"
-                        />
-                        <StatsCard
-                          title="Data Clusters"
-                          value="48"
-                          change="+5.2%"
-                          icon={<Database size={24} />}
-                          trend="up"
-                        />
-                        <StatsCard
-                          title="System Load"
-                          value="23%"
-                          change="-2.1%"
-                          icon={<Cpu size={24} />}
-                          trend="down"
                         />
                       </div>
                       
@@ -682,7 +709,7 @@ const AdminPage = () => {
                       <HolographicCard>
                         <div className="p-6">
                           <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-xl font-bold text-white">Quantum Analytics</h3>
+                            <h3 className="text-xl font-bold text-white">System Analytics</h3>
                             <motion.div
                               className="flex items-center gap-2 text-emerald-400"
                               animate={{ opacity: [0.5, 1, 0.5] }}
@@ -699,61 +726,18 @@ const AdminPage = () => {
                       {/* Real-time Metrics */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <StatsCard
-                          title="Neural Traffic"
-                          value="156.2K"
+                          title="Upcoming Events"
+                          value={dashboardStats?.upcomingEvents || 0}
                           change="+18.3%"
-                          icon={<Globe size={24} />}
-                        >
-                          <div className="mt-4">
-                            <div className="flex justify-between text-xs text-white/60 mb-1">
-                              <span>Bandwidth Usage</span>
-                              <span>78%</span>
-                            </div>
-                            <motion.div 
-                              className="h-2 bg-white/10 rounded-full overflow-hidden"
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              transition={{ delay: 0.5 }}
-                            >
-                              <motion.div 
-                                className="h-full bg-gradient-to-r from-cyan-400 to-purple-500 rounded-full"
-                                initial={{ width: 0 }}
-                                animate={{ width: "78%" }}
-                                transition={{ duration: 1.5, delay: 0.7 }}
-                              />
-                            </motion.div>
-                          </div>
-                        </StatsCard>
+                          icon={<Calendar size={24} />}
+                        />
                         
                         <StatsCard
-                          title="Energy Matrix"
-                          value="91.7%"
+                          title="Featured Projects"
+                          value={dashboardStats?.featuredProjects || 0}
                           change="+0.8%"
                           icon={<Zap size={24} />}
-                        >
-                          <div className="mt-4 space-y-2">
-                            {[
-                              { label: "Core Systems", value: 95 },
-                              { label: "Neural Networks", value: 88 },
-                              { label: "Data Processing", value: 92 }
-                            ].map((item, i) => (
-                              <div key={i} className="flex justify-between items-center">
-                                <span className="text-xs text-white/60">{item.label}</span>
-                                <div className="flex items-center gap-2">
-                                  <div className="w-16 h-16 bg-white/10 rounded-full overflow-hidden">
-                                    <motion.div 
-                                      className="h-full bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-full"
-                                      initial={{ width: 0 }}
-                                      animate={{ width: `${item.value}%` }}
-                                      transition={{ duration: 1, delay: i * 0.2 }}
-                                    />
-                                  </div>
-                                  <span className="text-xs text-emerald-400">{item.value}%</span>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </StatsCard>
+                        />
                       </div>
                     </div>
                   )}
@@ -784,7 +768,7 @@ const AdminPage = () => {
                         </h3>
                         
                         <p className="text-white/60 max-w-md mx-auto mb-6">
-                          This section is under development. Coming soon!
+                          This section connects to real Supabase data. Management interface coming soon!
                         </p>
                       </div>
                     </HolographicCard>

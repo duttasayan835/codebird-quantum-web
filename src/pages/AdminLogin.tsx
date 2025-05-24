@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -9,8 +8,7 @@ import Footer from "@/components/Footer";
 import { useToast } from "@/components/ui/use-toast";
 import { Card } from "@/components/ui/card";
 import { Mail, Lock, Github, AlertCircle, Loader2, Shield, Eye, EyeOff } from "lucide-react";
-import Button from "@/components/atoms/Button";
-import TextField from "@/components/atoms/TextField";
+import { supabase } from "@/integrations/supabase/client";
 
 // Quantum Particle System
 const QuantumParticleSystem = () => {
@@ -389,33 +387,84 @@ const AdminLogin = () => {
   const [isSignup, setIsSignup] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { signIn, signUp, user, profile } = useAuth();
+
+  // Redirect if already logged in and is admin
+  useEffect(() => {
+    if (user && profile?.role === 'admin') {
+      navigate("/admin");
+    }
+  }, [user, profile, navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate quantum authentication
-    setTimeout(() => {
-      if (credentials.email === "admin@codebirdclub.com" && credentials.password === "admin") {
-        localStorage.setItem("adminAuthenticated", "true");
-        toast({
-          title: "🔮 Quantum Access Granted",
-          description: "Neural pathways synchronized. Welcome to the admin matrix.",
+    try {
+      if (isSignup) {
+        await signUp(credentials.email, credentials.password, {
+          full_name: "Admin User"
         });
-        navigate("/admin");
+        toast({
+          title: "🔮 Account Created",
+          description: "Please check your email for verification. Contact support to get admin access.",
+        });
       } else {
-        toast({
-          title: "⚡ Access Denied",
-          description: "Quantum signature mismatch detected. Please verify your credentials.",
-          variant: "destructive",
-        });
+        await signIn(credentials.email, credentials.password);
+        // The useEffect above will handle the redirect
       }
+    } catch (error: any) {
+      console.error("Auth error:", error);
+      toast({
+        title: "⚡ Authentication Failed",
+        description: error.message || "Please check your credentials and try again.",
+        variant: "destructive",
+      });
+    } finally {
       setIsLoading(false);
-    }, 2000);
+    }
+  };
+
+  const handleGoogleAuth = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/admin`
+        }
+      });
+      
+      if (error) throw error;
+    } catch (error: any) {
+      toast({
+        title: "⚡ Google Auth Failed",
+        description: error.message || "Failed to authenticate with Google",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleGitHubAuth = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'github',
+        options: {
+          redirectTo: `${window.location.origin}/admin`
+        }
+      });
+      
+      if (error) throw error;
+    } catch (error: any) {
+      toast({
+        title: "⚡ GitHub Auth Failed",
+        description: error.message || "Failed to authenticate with GitHub",
+        variant: "destructive",
+      });
+    }
   };
 
   const toggleForm = () => {
@@ -545,17 +594,6 @@ const AdminLogin = () => {
 
                     {/* Form */}
                     <form onSubmit={handleSubmit} className="space-y-6">
-                      {isSignup && (
-                        <QuantumInput
-                          label="Admin Access Code"
-                          type="text"
-                          icon={<AlertCircle className="h-4 w-4" />}
-                          value=""
-                          onChange={() => {}}
-                          name="accessCode"
-                        />
-                      )}
-                      
                       <QuantumInput
                         label="Digital ID"
                         type="email"
@@ -629,10 +667,10 @@ const AdminLogin = () => {
                       <div className="grid grid-cols-2 gap-4 mt-4">
                         <motion.button
                           type="button"
+                          onClick={handleGitHubAuth}
                           className="relative overflow-hidden backdrop-blur-xl bg-black/30 border border-white/20 rounded-lg py-3 px-4 hover:bg-white/10 transition-all group"
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
-                          disabled
                         >
                           <div className="flex items-center justify-center gap-2">
                             <Github size={18} />
@@ -642,10 +680,10 @@ const AdminLogin = () => {
                         
                         <motion.button
                           type="button"
+                          onClick={handleGoogleAuth}
                           className="relative overflow-hidden backdrop-blur-xl bg-black/30 border border-white/20 rounded-lg py-3 px-4 hover:bg-white/10 transition-all group"
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
-                          disabled
                         >
                           <div className="flex items-center justify-center gap-2">
                             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
@@ -677,16 +715,16 @@ const AdminLogin = () => {
               />
             </HolographicCard>
 
-            {/* Demo Credentials */}
+            {/* Instructions */}
             <motion.div
               className="mt-6 text-center text-sm text-white/60"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1 }}
             >
-              <p className="mb-1">🔮 Demo Quantum Credentials:</p>
-              <p>Email: admin@codebirdclub.com</p>
-              <p>Password: admin</p>
+              <p className="mb-1">🔮 Admin Access:</p>
+              <p>Create an account or login with existing credentials.</p>
+              <p>Contact support to get admin privileges assigned.</p>
             </motion.div>
           </div>
         </div>
