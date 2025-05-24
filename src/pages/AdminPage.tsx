@@ -1025,7 +1025,7 @@ const AdminPage = () => {
       <Footer />
       
       {/* Custom Scrollbar Styles */}
-      <style>{`
+      <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 4px;
         }
