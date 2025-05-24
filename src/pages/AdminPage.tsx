@@ -22,7 +22,8 @@ import {
   RotateCw,
   Bell,
   Settings,
-  ChevronRight
+  ChevronRight,
+  AlertCircle
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import Button from "@/components/atoms/Button";

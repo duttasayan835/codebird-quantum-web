@@ -8,7 +8,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useToast } from "@/components/ui/use-toast";
 import { Card } from "@/components/ui/card";
-import { ParticlesBackground } from "@/components/ParticlesBackground";
+import ParticlesBackground from "@/components/ParticlesBackground";
 import { Mail, Lock, Github, AlertCircle, Loader2 } from "lucide-react";
 import Button from "@/components/atoms/Button";
 import TextField from "@/components/atoms/TextField";
