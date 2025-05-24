@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import AnimatedPage from "../components/AnimatedPage";
 import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   LayoutDashboard, 
   Calendar, 
@@ -13,27 +14,14 @@ import {
   Image, 
   Users, 
   LogOut, 
-  Activity, 
-  Upload, 
-  PlusSquare, 
-  Search, 
-  RotateCw,
-  Bell,
   Settings,
-  ChevronRight,
-  AlertCircle,
-  Cpu,
-  Database,
+  FileText,
   Globe,
-  Zap,
-  Shield,
-  TrendingUp,
-  Eye,
-  Download,
-  Star
+  Loader2
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import Button from "@/components/atoms/Button";
+import { ContentManagement } from "@/components/admin/ContentManagement";
+import { EventsManagement } from "@/components/admin/EventsManagement";
 
 // 3D Holographic Background
 const HolographicBackground = () => {
@@ -475,35 +463,30 @@ const ActivityItem = ({
 
 const AdminPage = () => {
   const [activeSection, setActiveSection] = useState<string>("dashboard");
-  const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user, profile, loading } = useAuth();
   
   useEffect(() => {
-    // Check if user is authenticated as admin
-    const adminAuthenticated = localStorage.getItem("adminAuthenticated");
-    if (!adminAuthenticated) {
+    if (!loading && (!user || profile?.role !== 'admin')) {
       toast({
         title: "⚡ Access Denied",
-        description: "Please authenticate to access the quantum admin interface.",
+        description: "Admin privileges required to access this interface.",
         variant: "destructive",
       });
-      navigate("/admin-login");
-    } else {
-      setIsAdmin(true);
+      navigate("/");
     }
-  }, [navigate, toast]);
+  }, [user, profile, loading, navigate, toast]);
   
   const handleLogout = () => {
-    localStorage.removeItem("adminAuthenticated");
+    navigate("/");
     toast({
       title: "🌌 Session Terminated",
       description: "Admin neural connection successfully disconnected.",
     });
-    navigate("/");
   };
 
-  if (!isAdmin) {
+  if (loading || !user || profile?.role !== 'admin') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-black">
         <motion.div
@@ -516,12 +499,15 @@ const AdminPage = () => {
   }
 
   const sidebarItems = [
-    { id: "dashboard", icon: <LayoutDashboard size={20} />, label: "Neural Dashboard", count: 3 },
-    { id: "events", icon: <Calendar size={20} />, label: "Event Matrix", count: 12 },
-    { id: "projects", icon: <FolderOpen size={20} />, label: "Project Nexus", count: 48 },
-    { id: "resources", icon: <BookOpen size={20} />, label: "Data Archive", count: 156 },
-    { id: "gallery", icon: <Image size={20} />, label: "Visual Vault", count: 89 },
-    { id: "users", icon: <Users size={20} />, label: "User Network", count: 1245 }
+    { id: "dashboard", icon: <LayoutDashboard size={20} />, label: "Dashboard" },
+    { id: "content", icon: <Globe size={20} />, label: "Site Content" },
+    { id: "events", icon: <Calendar size={20} />, label: "Events" },
+    { id: "projects", icon: <FolderOpen size={20} />, label: "Projects" },
+    { id: "resources", icon: <BookOpen size={20} />, label: "Resources" },
+    { id: "blog", icon: <FileText size={20} />, label: "Blog Posts" },
+    { id: "gallery", icon: <Image size={20} />, label: "Gallery" },
+    { id: "team", icon: <Users size={20} />, label: "Team Members" },
+    { id: "settings", icon: <Settings size={20} />, label: "Settings" }
   ];
 
   return (
@@ -573,7 +559,7 @@ const AdminPage = () => {
                     ease: "linear"
                   }}
                 >
-                  Quantum Neural Interface
+                  CodeBird Admin
                 </motion.h1>
                 
                 <motion.div
@@ -585,7 +571,7 @@ const AdminPage = () => {
                   <div className="h-1 w-40 bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 rounded-full" />
                   <div className="flex items-center gap-2 text-white/60">
                     <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-                    <span className="text-sm">System Optimal</span>
+                    <span className="text-sm">System Online</span>
                   </div>
                 </motion.div>
               </div>
@@ -597,7 +583,7 @@ const AdminPage = () => {
                 whileTap={{ scale: 0.95 }}
               >
                 <LogOut size={18} />
-                <span>Disconnect</span>
+                <span>Logout</span>
               </motion.button>
             </div>
           </motion.div>
@@ -614,22 +600,12 @@ const AdminPage = () => {
                 <div className="p-6">
                   {/* Admin Profile */}
                   <div className="flex items-center gap-3 mb-6 p-4 bg-gradient-to-r from-cyan-500/10 to-purple-500/10 rounded-xl">
-                    <motion.div 
-                      className="w-12 h-12 rounded-full bg-gradient-to-r from-cyan-400 to-purple-500 flex items-center justify-center"
-                      animate={{ 
-                        boxShadow: [
-                          '0 0 20px rgba(0, 245, 255, 0.5)',
-                          '0 0 30px rgba(139, 92, 246, 0.5)',
-                          '0 0 20px rgba(0, 245, 255, 0.5)'
-                        ]
-                      }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    >
-                      <Shield size={24} className="text-white" />
-                    </motion.div>
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-r from-cyan-400 to-purple-500 flex items-center justify-center">
+                      <Users size={24} className="text-white" />
+                    </div>
                     <div>
-                      <p className="font-medium text-white">Quantum Admin</p>
-                      <p className="text-xs text-white/60">Neural Interface v2.4.1</p>
+                      <p className="font-medium text-white">{profile?.full_name || user?.email}</p>
+                      <p className="text-xs text-white/60">Administrator</p>
                     </div>
                   </div>
                   
@@ -642,7 +618,6 @@ const AdminPage = () => {
                         label={item.label}
                         active={activeSection === item.id}
                         onClick={() => setActiveSection(item.id)}
-                        count={item.count}
                       />
                     ))}
                   </nav>
@@ -652,7 +627,7 @@ const AdminPage = () => {
             
             {/* Main Content */}
             <motion.div 
-              className="col-span-12 lg:col-span-6"
+              className="col-span-12 lg:col-span-9"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
@@ -772,97 +747,11 @@ const AdminPage = () => {
                     </div>
                   )}
                   
-                  {activeSection === "events" && (
-                    <HolographicCard>
-                      <div className="p-6">
-                        <div className="flex items-center justify-between mb-6">
-                          <h2 className="text-2xl font-bold text-white">Event Matrix Control</h2>
-                          <Button 
-                            className="bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600"
-                            leftIcon={<PlusSquare size={16} />}
-                          >
-                            Create Event
-                          </Button>
-                        </div>
-                        
-                        {/* Search Bar */}
-                        <div className="relative mb-6">
-                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" size={16} />
-                          <input 
-                            type="text" 
-                            placeholder="Search quantum events..." 
-                            className="w-full pl-10 py-3 bg-black/40 backdrop-blur-md border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500/50 text-white placeholder-white/50" 
-                          />
-                        </div>
-                        
-                        {/* Events Table */}
-                        <div className="overflow-x-auto rounded-lg border border-white/20">
-                          <table className="w-full text-sm">
-                            <thead className="bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border-b border-white/20">
-                              <tr>
-                                <th className="px-6 py-4 text-left font-medium text-cyan-400">Event Name</th>
-                                <th className="px-6 py-4 text-left font-medium text-cyan-400">Date</th>
-                                <th className="px-6 py-4 text-left font-medium text-cyan-400">Participants</th>
-                                <th className="px-6 py-4 text-left font-medium text-cyan-400">Status</th>
-                                <th className="px-6 py-4 text-right font-medium text-cyan-400">Actions</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {[
-                                { id: 1, name: "Quantum Web3 Workshop", date: "2025-06-15", participants: 54, status: "Active" },
-                                { id: 2, name: "Neural AI Hackathon", date: "2025-07-10", participants: 128, status: "Planning" },
-                                { id: 3, name: "Cyberpunk Code Retreat", date: "2025-05-30", participants: 36, status: "Active" },
-                                { id: 4, name: "Holographic React Masterclass", date: "2025-06-22", participants: 85, status: "Active" }
-                              ].map((event, index) => (
-                                <motion.tr 
-                                  key={event.id}
-                                  className="border-b border-white/10 bg-black/20 hover:bg-white/5 transition-colors"
-                                  initial={{ opacity: 0, y: 20 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  transition={{ delay: index * 0.1 }}
-                                  whileHover={{ x: 5 }}
-                                >
-                                  <td className="px-6 py-4 font-medium text-white">{event.name}</td>
-                                  <td className="px-6 py-4 text-white/70">{event.date}</td>
-                                  <td className="px-6 py-4 text-white/70">{event.participants}</td>
-                                  <td className="px-6 py-4">
-                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                      event.status === "Active" ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" :
-                                      event.status === "Planning" ? "bg-amber-500/20 text-amber-400 border border-amber-500/30" :
-                                      "bg-gray-500/20 text-gray-400 border border-gray-500/30"
-                                    }`}>
-                                      {event.status}
-                                    </span>
-                                  </td>
-                                  <td className="px-6 py-4 text-right">
-                                    <div className="flex justify-end gap-2">
-                                      <motion.button 
-                                        className="px-3 py-1 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 rounded-md text-xs transition-colors border border-cyan-500/30"
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
-                                      >
-                                        Edit
-                                      </motion.button>
-                                      <motion.button 
-                                        className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-md text-xs transition-colors border border-red-500/30"
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
-                                      >
-                                        Delete
-                                      </motion.button>
-                                    </div>
-                                  </td>
-                                </motion.tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    </HolographicCard>
-                  )}
+                  {activeSection === "content" && <ContentManagement />}
+                  {activeSection === "events" && <EventsManagement />}
                   
-                  {/* Other sections */}
-                  {activeSection !== "dashboard" && activeSection !== "events" && (
+                  {/* Other sections placeholder */}
+                  {!["dashboard", "content", "events"].includes(activeSection) && (
                     <HolographicCard className="h-[60vh] flex items-center justify-center">
                       <div className="text-center">
                         <motion.div
@@ -876,31 +765,16 @@ const AdminPage = () => {
                             scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
                           }}
                         >
-                          {activeSection === "projects" && <FolderOpen size={40} className="text-cyan-400" />}
-                          {activeSection === "resources" && <BookOpen size={40} className="text-cyan-400" />}
-                          {activeSection === "gallery" && <Image size={40} className="text-cyan-400" />}
-                          {activeSection === "users" && <Users size={40} className="text-cyan-400" />}
+                          {sidebarItems.find(item => item.id === activeSection)?.icon}
                         </motion.div>
                         
                         <h3 className="text-2xl font-bold text-white mb-3">
-                          {activeSection.charAt(0).toUpperCase() + activeSection.slice(1)} Neural Interface
+                          {activeSection.charAt(0).toUpperCase() + activeSection.slice(1)} Management
                         </h3>
                         
                         <p className="text-white/60 max-w-md mx-auto mb-6">
-                          This quantum module is currently undergoing neural calibration. Advanced holographic systems coming online.
+                          This section is under development. Coming soon!
                         </p>
-                        
-                        <motion.div
-                          className="mx-auto h-1 w-48 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full overflow-hidden"
-                          animate={{ opacity: [0.5, 1, 0.5] }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                        >
-                          <motion.div 
-                            className="h-full w-full bg-gradient-to-r from-white/50 to-transparent"
-                            animate={{ x: [-100, 100] }}
-                            transition={{ duration: 1.5, repeat: Infinity, repeatType: "reverse" }}
-                          />
-                        </motion.div>
                       </div>
                     </HolographicCard>
                   )}
