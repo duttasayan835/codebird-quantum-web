@@ -1,298 +1,358 @@
 
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, ChevronDown, LogOut, User, Sparkles, Shield } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { Menu, X, ChevronDown, User, LogOut, Shield, Settings } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import CodeIcon from "@/components/ui/code-icon";
-
-interface NavItemProps {
-  to: string;
-  children: React.ReactNode;
-  dropdown?: { title: string; to: string }[];
-}
-
-const NavItem = ({ to, children, dropdown }: NavItemProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return dropdown ? (
-    <div className="relative group">
-      <button
-        className="flex items-center gap-1 px-4 py-2 text-foreground/90 hover:text-foreground transition-colors"
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        {children}
-        <ChevronDown className="h-4 w-4" />
-      </button>
-      <div
-        className={cn(
-          "absolute top-full left-0 min-w-[200px] glass-card p-2 transition-all",
-          isOpen ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none"
-        )}
-      >
-        <ul className="flex flex-col">
-          {dropdown.map((item) => (
-            <li key={item.to}>
-              <Link
-                to={item.to}
-                className="block px-4 py-2 hover:bg-white/10 rounded-md transition-colors"
-                onClick={() => setIsOpen(false)}
-              >
-                {item.title}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  ) : (
-    <Link
-      to={to}
-      className="px-4 py-2 text-foreground/90 hover:text-foreground transition-colors"
-    >
-      {children}
-    </Link>
-  );
-};
 
 const Navbar = () => {
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isAdmin, setIsAdmin] = useState(false);
 
+  // Check admin status
   useEffect(() => {
-    const checkAdmin = () => {
-      const adminAuth = localStorage.getItem("adminAuthenticated");
-      setIsAdmin(adminAuth === "true");
-    };
-    
-    checkAdmin();
-    window.addEventListener("storage", checkAdmin);
-    
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
-    
-    window.addEventListener("scroll", handleScroll);
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("storage", checkAdmin);
-    };
+    const adminAuth = localStorage.getItem("adminAuthenticated");
+    setIsAdmin(!!adminAuth);
+  }, [location]);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const handleSignOut = async () => {
-    await signOut();
+    try {
+      await signOut();
+      setDropdownOpen(false);
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   };
 
-  const handleAdminSignOut = () => {
+  const handleAdminLogout = () => {
     localStorage.removeItem("adminAuthenticated");
     setIsAdmin(false);
     navigate("/");
   };
 
-  const getUserInitials = () => {
-    if (profile?.full_name) {
-      return profile.full_name.split(' ')
-        .map((n: string) => n[0])
-        .join('')
-        .toUpperCase()
-        .substring(0, 2);
+  const navItems = [
+    { name: "Home", href: "/" },
+    { name: "About", href: "/about" },
+    { name: "Team", href: "/team" },
+    { 
+      name: "Projects", 
+      href: "/projects",
+      dropdown: [
+        { name: "All Projects", href: "/projects" },
+        { name: "Featured", href: "/projects/featured" },
+        { name: "Open Source", href: "/projects/open-source" }
+      ]
+    },
+    { name: "Events", href: "/events" },
+    { 
+      name: "Resources", 
+      href: "/resources",
+      dropdown: [
+        { name: "All Resources", href: "/resources" },
+        { name: "Tutorials", href: "/resources/tutorials" },
+        { name: "Challenges", href: "/resources/challenges" }
+      ]
+    },
+    { name: "Blog", href: "/blog" },
+    { name: "Gallery", href: "/gallery" },
+    { name: "Contact", href: "/contact" }
+  ];
+
+  const NavItem = ({ item, isMobile = false }: { item: any; isMobile?: boolean }) => {
+    const [isHovered, setIsHovered] = useState(false);
+    
+    if (item.dropdown) {
+      return (
+        <div 
+          className={`relative ${isMobile ? 'w-full' : ''}`}
+          onMouseEnter={() => !isMobile && setIsHovered(true)}
+          onMouseLeave={() => !isMobile && setIsHovered(false)}
+        >
+          <button
+            onClick={() => isMobile && setIsHovered(!isHovered)}
+            className={`flex items-center gap-1 px-4 py-2 rounded-lg transition-all duration-300 hover:bg-white/10 hover:text-primary ${
+              isMobile ? 'w-full justify-between' : ''
+            }`}
+          >
+            {item.name}
+            <ChevronDown 
+              size={16} 
+              className={`transition-transform duration-300 ${isHovered ? 'rotate-180' : ''}`} 
+            />
+          </button>
+          
+          <AnimatePresence>
+            {isHovered && (
+              <motion.div
+                initial={{ opacity: 0, y: isMobile ? 0 : 10, height: isMobile ? 0 : 'auto' }}
+                animate={{ opacity: 1, y: 0, height: 'auto' }}
+                exit={{ opacity: 0, y: isMobile ? 0 : 10, height: isMobile ? 0 : 'auto' }}
+                transition={{ duration: 0.2 }}
+                className={`${
+                  isMobile 
+                    ? 'w-full bg-white/5 rounded-lg mt-2 overflow-hidden' 
+                    : 'absolute top-full left-0 mt-2 w-48 bg-black/90 backdrop-blur-xl border border-white/10 rounded-lg shadow-xl z-50'
+                }`}
+              >
+                {item.dropdown.map((subItem: any) => (
+                  <Link
+                    key={subItem.href}
+                    to={subItem.href}
+                    onClick={() => {
+                      setIsOpen(false);
+                      setIsHovered(false);
+                    }}
+                    className="block px-4 py-3 text-sm hover:bg-white/10 hover:text-primary transition-colors"
+                  >
+                    {subItem.name}
+                  </Link>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      );
     }
-    return user?.email?.substring(0, 2).toUpperCase() || 'CB';
+
+    return (
+      <Link
+        to={item.href}
+        onClick={() => setIsOpen(false)}
+        className={`px-4 py-2 rounded-lg transition-all duration-300 hover:bg-white/10 hover:text-primary ${
+          location.pathname === item.href ? 'text-primary bg-white/10' : ''
+        } ${isMobile ? 'block w-full' : ''}`}
+      >
+        {item.name}
+      </Link>
+    );
   };
 
+  const UserDropdown = () => (
+    <div className="relative">
+      <button
+        onClick={() => setDropdownOpen(!dropdownOpen)}
+        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 transition-all duration-300"
+      >
+        <div className="w-8 h-8 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center">
+          <User size={16} className="text-white" />
+        </div>
+        <span className="hidden md:block text-sm">
+          {profile?.full_name || user?.email?.split('@')[0] || 'User'}
+        </span>
+        <ChevronDown 
+          size={16} 
+          className={`transition-transform duration-300 ${dropdownOpen ? 'rotate-180' : ''}`} 
+        />
+      </button>
+
+      <AnimatePresence>
+        {dropdownOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="absolute right-0 mt-2 w-48 bg-black/90 backdrop-blur-xl border border-white/10 rounded-lg shadow-xl z-50"
+          >
+            <Link
+              to="/profile"
+              onClick={() => setDropdownOpen(false)}
+              className="flex items-center gap-2 px-4 py-3 text-sm hover:bg-white/10 transition-colors"
+            >
+              <User size={16} />
+              Profile
+            </Link>
+            <Link
+              to="/settings"
+              onClick={() => setDropdownOpen(false)}
+              className="flex items-center gap-2 px-4 py-3 text-sm hover:bg-white/10 transition-colors"
+            >
+              <Settings size={16} />
+              Settings
+            </Link>
+            <button
+              onClick={handleSignOut}
+              className="flex items-center gap-2 w-full px-4 py-3 text-sm hover:bg-white/10 transition-colors text-red-400"
+            >
+              <LogOut size={16} />
+              Sign Out
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+
+  const AdminDropdown = () => (
+    <div className="relative">
+      <button
+        onClick={() => setDropdownOpen(!dropdownOpen)}
+        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500/20 to-cyan-500/20 border border-purple-500/30 hover:bg-gradient-to-r hover:from-purple-500/30 hover:to-cyan-500/30 transition-all duration-300"
+      >
+        <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-cyan-500 flex items-center justify-center">
+          <Shield size={16} className="text-white" />
+        </div>
+        <span className="hidden md:block text-sm text-purple-300">Admin</span>
+        <ChevronDown 
+          size={16} 
+          className={`transition-transform duration-300 text-purple-300 ${dropdownOpen ? 'rotate-180' : ''}`} 
+        />
+      </button>
+
+      <AnimatePresence>
+        {dropdownOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="absolute right-0 mt-2 w-48 bg-black/90 backdrop-blur-xl border border-purple-500/30 rounded-lg shadow-xl z-50"
+          >
+            <Link
+              to="/admin"
+              onClick={() => setDropdownOpen(false)}
+              className="flex items-center gap-2 px-4 py-3 text-sm hover:bg-purple-500/10 transition-colors text-purple-300"
+            >
+              <Shield size={16} />
+              Admin Dashboard
+            </Link>
+            <button
+              onClick={() => {
+                handleAdminLogout();
+                setDropdownOpen(false);
+              }}
+              className="flex items-center gap-2 w-full px-4 py-3 text-sm hover:bg-red-500/10 transition-colors text-red-400"
+            >
+              <LogOut size={16} />
+              Admin Logout
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-black/30 backdrop-blur-lg border-b border-white/10">
+    <motion.nav
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled 
+          ? 'bg-black/80 backdrop-blur-xl border-b border-white/10' 
+          : 'bg-transparent'
+      }`}
+    >
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
+          {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <div className="relative w-8 h-8">
-              <div className="absolute inset-0 bg-primary rounded-full opacity-20 animate-ping-slow"></div>
-              <div className="absolute inset-0 bg-primary rounded-full"></div>
-              <CodeIcon className="w-5 h-5 absolute inset-0 m-auto text-white" />
-            </div>
-            <span className="font-bold text-xl">CodeBird</span>
-          </Link>
-          
-          <div className="hidden md:flex items-center space-x-1">
-            <NavItem to="/">Home</NavItem>
-            <NavItem to="/about">About</NavItem>
-            <NavItem 
-              to="/projects" 
-              dropdown={[
-                { title: "All Projects", to: "/projects" },
-                { title: "Featured", to: "/projects/featured" },
-                { title: "Open Source", to: "/projects/open-source" }
-              ]}
+            <motion.div 
+              className="w-10 h-10 bg-gradient-to-r from-primary to-secondary rounded-lg flex items-center justify-center"
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              transition={{ type: "spring", stiffness: 400, damping: 10 }}
             >
-              Projects
-            </NavItem>
-            <NavItem to="/events">Events</NavItem>
-            <NavItem to="/resources">Resources</NavItem>
-            <NavItem to="/blog">Blog</NavItem>
-            <NavItem to="/gallery">Gallery</NavItem>
-            <NavItem to="/inference">
-              <div className="flex items-center">
-                <Sparkles className="h-4 w-4 mr-1 text-yellow-400" />
-                Inference
-              </div>
-            </NavItem>
-            <NavItem to="/contact">Contact</NavItem>
-            
-            {/* Admin Login and User Login conditional rendering */}
+              <span className="text-white font-bold text-lg">C</span>
+            </motion.div>
+            <motion.span 
+              className="text-xl font-bold text-gradient"
+              whileHover={{ scale: 1.05 }}
+            >
+              CodeBird Club
+            </motion.span>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <div className="hidden lg:flex items-center space-x-2">
+            {navItems.map((item) => (
+              <NavItem key={item.href} item={item} />
+            ))}
+          </div>
+
+          {/* Auth Section */}
+          <div className="flex items-center gap-4">
+            {/* Admin or User Auth */}
             {isAdmin ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger className="ml-4 flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary to-secondary rounded-full text-white transition-all hover:shadow-lg hover:shadow-primary/20">
-                  <Shield className="h-4 w-4 mr-1" />
-                  <span>Admin</span>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="glass-card">
-                  <DropdownMenuItem className="cursor-pointer" onClick={() => navigate('/admin')}>
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Dashboard</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive" onClick={handleAdminSignOut}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Admin Logout</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <AdminDropdown />
             ) : user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger className="ml-4 flex items-center gap-2 px-2">
-                  <Avatar className="h-8 w-8 border border-white/20">
-                    <AvatarImage src={profile?.avatar_url} />
-                    <AvatarFallback className="bg-primary text-xs">
-                      {getUserInitials()}
-                    </AvatarFallback>
-                  </Avatar>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="glass-card">
-                  <DropdownMenuItem className="cursor-pointer" onClick={() => navigate('/profile')}>
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive" onClick={handleSignOut}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Logout</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <UserDropdown />
             ) : (
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center gap-2">
                 <Link
                   to="/auth"
-                  className="px-6 py-2 bg-primary hover:bg-primary/90 rounded-full text-white transition-all shadow-lg hover:shadow-primary/40"
+                  className="px-4 py-2 text-sm rounded-lg border border-white/20 hover:bg-white/10 transition-all duration-300"
                 >
                   Login
                 </Link>
                 <Link
                   to="/admin-login"
-                  className="px-4 py-2 bg-black/50 backdrop-blur-md border border-white/10 hover:bg-white/10 rounded-full transition-all flex items-center"
+                  className="px-4 py-2 text-sm rounded-lg bg-gradient-to-r from-purple-500/20 to-cyan-500/20 border border-purple-500/30 hover:from-purple-500/30 hover:to-cyan-500/30 transition-all duration-300 text-purple-300"
                 >
-                  <Shield className="h-4 w-4 mr-2 text-primary" />
                   Admin
                 </Link>
               </div>
             )}
-          </div>
-          
-          <div className="flex items-center space-x-4">
+
+            {/* Mobile Menu Button */}
             <button
-              className="lg:hidden text-foreground"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              onClick={() => setIsOpen(!isOpen)}
+              className="lg:hidden p-2 rounded-lg hover:bg-white/10 transition-colors"
             >
-              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              {isOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
-            
-            <div
-              className={cn(
-                "fixed inset-0 bg-background glass z-40 lg:hidden pt-20 px-6",
-                isMobileMenuOpen ? "flex flex-col animate-fade-in" : "hidden"
-              )}
+          </div>
+        </div>
+
+        {/* Mobile Navigation */}
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+              className="lg:hidden border-t border-white/10 py-4 overflow-hidden"
             >
-              <nav className="flex flex-col gap-4">
-                <Link to="/" className="px-4 py-3 hover:bg-white/10 rounded-lg" onClick={() => setIsMobileMenuOpen(false)}>Home</Link>
-                <Link to="/about" className="px-4 py-3 hover:bg-white/10 rounded-lg" onClick={() => setIsMobileMenuOpen(false)}>About</Link>
-                <Link to="/projects" className="px-4 py-3 hover:bg-white/10 rounded-lg" onClick={() => setIsMobileMenuOpen(false)}>Projects</Link>
-                <Link to="/events" className="px-4 py-3 hover:bg-white/10 rounded-lg" onClick={() => setIsMobileMenuOpen(false)}>Events</Link>
-                <Link to="/resources" className="px-4 py-3 hover:bg-white/10 rounded-lg" onClick={() => setIsMobileMenuOpen(false)}>Resources</Link>
-                <Link to="/blog" className="px-4 py-3 hover:bg-white/10 rounded-lg" onClick={() => setIsMobileMenuOpen(false)}>Blog</Link>
-                <Link to="/gallery" className="px-4 py-3 hover:bg-white/10 rounded-lg" onClick={() => setIsMobileMenuOpen(false)}>Gallery</Link>
-                <Link to="/inference" className="px-4 py-3 hover:bg-white/10 rounded-lg flex items-center" onClick={() => setIsMobileMenuOpen(false)}>
-                  <Sparkles className="h-4 w-4 mr-2 text-yellow-400" />
-                  Inference
-                </Link>
-                <Link to="/contact" className="px-4 py-3 hover:bg-white/10 rounded-lg" onClick={() => setIsMobileMenuOpen(false)}>Contact</Link>
+              <div className="space-y-2">
+                {navItems.map((item) => (
+                  <NavItem key={item.href} item={item} isMobile />
+                ))}
                 
-                {isAdmin ? (
-                  <>
-                    <Link to="/admin" className="px-4 py-3 hover:bg-white/10 rounded-lg flex items-center" onClick={() => setIsMobileMenuOpen(false)}>
-                      <Shield className="h-4 w-4 mr-2 text-primary" />
-                      Admin Dashboard
-                    </Link>
-                    <button 
-                      className="px-4 py-3 text-left text-destructive hover:bg-white/10 rounded-lg" 
-                      onClick={() => {
-                        handleAdminSignOut();
-                        setIsMobileMenuOpen(false);
-                      }}
-                    >
-                      Admin Logout
-                    </button>
-                  </>
-                ) : user ? (
-                  <>
-                    <Link to="/profile" className="px-4 py-3 hover:bg-white/10 rounded-lg" onClick={() => setIsMobileMenuOpen(false)}>
-                      Profile
-                    </Link>
-                    <button 
-                      className="px-4 py-3 text-left text-destructive hover:bg-white/10 rounded-lg" 
-                      onClick={() => {
-                        handleSignOut();
-                        setIsMobileMenuOpen(false);
-                      }}
-                    >
-                      Logout
-                    </button>
-                  </>
-                ) : (
-                  <div className="flex flex-col gap-2 mt-2">
+                {/* Mobile Auth */}
+                {!user && !isAdmin && (
+                  <div className="pt-4 border-t border-white/10 space-y-2">
                     <Link
                       to="/auth"
-                      className="px-6 py-3 bg-primary hover:bg-primary/90 rounded-lg text-white text-center transition-all shadow-lg"
-                      onClick={() => setIsMobileMenuOpen(false)}
+                      onClick={() => setIsOpen(false)}
+                      className="block px-4 py-2 text-center rounded-lg border border-white/20 hover:bg-white/10 transition-all duration-300"
                     >
                       Login
                     </Link>
                     <Link
                       to="/admin-login"
-                      className="px-6 py-3 bg-black/50 backdrop-blur-md border border-white/10 hover:bg-white/10 rounded-lg text-center transition-all flex items-center justify-center"
-                      onClick={() => setIsMobileMenuOpen(false)}
+                      onClick={() => setIsOpen(false)}
+                      className="block px-4 py-2 text-center rounded-lg bg-gradient-to-r from-purple-500/20 to-cyan-500/20 border border-purple-500/30 hover:from-purple-500/30 hover:to-cyan-500/30 transition-all duration-300 text-purple-300"
                     >
-                      <Shield className="h-4 w-4 mr-2 text-primary" />
                       Admin Login
                     </Link>
                   </div>
                 )}
-              </nav>
-            </div>
-          </div>
-        </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-    </header>
+    </motion.nav>
   );
 };
 

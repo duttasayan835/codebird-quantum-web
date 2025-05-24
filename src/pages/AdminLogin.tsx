@@ -8,109 +8,241 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useToast } from "@/components/ui/use-toast";
 import { Card } from "@/components/ui/card";
-import ParticlesBackground from "@/components/ParticlesBackground";
-import { Mail, Lock, Github, AlertCircle, Loader2 } from "lucide-react";
+import { Mail, Lock, Github, AlertCircle, Loader2, Shield, Eye, EyeOff } from "lucide-react";
 import Button from "@/components/atoms/Button";
 import TextField from "@/components/atoms/TextField";
 
-// Cyberpunk circuit pattern SVG background
-const CyberCircuitPattern = () => (
-  <div className="absolute inset-0 z-0 opacity-10">
-    <svg 
-      className="h-full w-full"
-      xmlns="http://www.w3.org/2000/svg" 
-      viewBox="0 0 800 800"
-    >
-      <path 
-        d="M0 0h800v800H0z" 
-        fill="none" 
-      />
-      <path 
-        d="M769 229L1037 260.9M927 880L731 737 520 660 309 538 40 599 295 764 126.5 879.5 40 599-197 493 102 382-31 229 126.5 79.5-69-63"
+// Quantum Particle System
+const QuantumParticleSystem = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    const particles: Array<{
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+      size: number;
+      hue: number;
+      energy: number;
+      orbit: number;
+    }> = [];
+    
+    // Create quantum particles
+    for (let i = 0; i < 100; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 2,
+        vy: (Math.random() - 0.5) * 2,
+        size: Math.random() * 3 + 1,
+        hue: 240 + Math.random() * 60,
+        energy: Math.random(),
+        orbit: Math.random() * Math.PI * 2
+      });
+    }
+    
+    let frame = 0;
+    
+    const animate = () => {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      frame += 0.01;
+      
+      particles.forEach((particle, i) => {
+        // Orbital motion around center
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const distance = Math.sqrt(Math.pow(particle.x - centerX, 2) + Math.pow(particle.y - centerY, 2));
+        
+        // Quantum tunneling effect
+        if (Math.random() < 0.001) {
+          particle.x = Math.random() * canvas.width;
+          particle.y = Math.random() * canvas.height;
+        }
+        
+        // Update position with orbital influence
+        particle.orbit += 0.02;
+        particle.x += particle.vx + Math.cos(particle.orbit) * 0.5;
+        particle.y += particle.vy + Math.sin(particle.orbit) * 0.5;
+        
+        // Boundary wrapping
+        if (particle.x < 0) particle.x = canvas.width;
+        if (particle.x > canvas.width) particle.x = 0;
+        if (particle.y < 0) particle.y = canvas.height;
+        if (particle.y > canvas.height) particle.y = 0;
+        
+        // Draw particle with quantum glow
+        const alpha = 0.6 + Math.sin(frame + i * 0.1) * 0.4;
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+        
+        // Create radial gradient for glow effect
+        const gradient = ctx.createRadialGradient(
+          particle.x, particle.y, 0,
+          particle.x, particle.y, particle.size * 3
+        );
+        gradient.addColorStop(0, `hsla(${particle.hue}, 100%, 60%, ${alpha})`);
+        gradient.addColorStop(0.5, `hsla(${particle.hue}, 100%, 50%, ${alpha * 0.5})`);
+        gradient.addColorStop(1, `hsla(${particle.hue}, 100%, 40%, 0)`);
+        
+        ctx.fillStyle = gradient;
+        ctx.fill();
+        
+        // Quantum entanglement lines
+        particles.forEach((other, j) => {
+          if (i !== j) {
+            const dx = particle.x - other.x;
+            const dy = particle.y - other.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance < 150) {
+              ctx.beginPath();
+              ctx.strokeStyle = `hsla(${(particle.hue + other.hue) / 2}, 100%, 50%, ${0.3 * (1 - distance / 150)})`;
+              ctx.lineWidth = 0.5;
+              ctx.moveTo(particle.x, particle.y);
+              ctx.lineTo(other.x, other.y);
+              ctx.stroke();
+            }
+          }
+        });
+      });
+      
+      requestAnimationFrame(animate);
+    };
+    
+    animate();
+    
+    const handleResize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  
+  return (
+    <canvas 
+      ref={canvasRef}
+      className="absolute inset-0 z-0"
+      style={{ background: 'radial-gradient(ellipse at center, #1a0b2e 0%, #16213e 50%, #0f3460 100%)' }}
+    />
+  );
+};
+
+// Cyberpunk Circuit Pattern
+const CyberCircuitOverlay = () => (
+  <div className="absolute inset-0 z-10 opacity-20 pointer-events-none">
+    <svg className="w-full h-full" viewBox="0 0 1200 800">
+      <defs>
+        <linearGradient id="circuitGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#00f5ff" />
+          <stop offset="50%" stopColor="#8b5cf6" />
+          <stop offset="100%" stopColor="#f0abfc" />
+        </linearGradient>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+          <feMerge> 
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+      </defs>
+      
+      <motion.path
+        d="M50,100 L200,100 L250,150 L400,150 L450,200 L600,200 L650,250 L800,250"
+        stroke="url(#circuitGradient)"
+        strokeWidth="2"
         fill="none"
-        stroke="#4F46E5"
-        strokeWidth="4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        filter="url(#glow)"
+        initial={{ pathLength: 0 }}
+        animate={{ pathLength: 1 }}
+        transition={{ duration: 3, repeat: Infinity, repeatType: "reverse" }}
       />
-      <path 
-        d="M-31 229L237 261 390 382 603 493 308.5 537.5 101.5 381.5M370 905L295 764"
+      
+      <motion.path
+        d="M100,300 L300,300 L350,350 L550,350 L600,400 L800,400"
+        stroke="url(#circuitGradient)"
+        strokeWidth="2"
         fill="none"
-        stroke="#06B6D4"
-        strokeWidth="5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        filter="url(#glow)"
+        initial={{ pathLength: 0 }}
+        animate={{ pathLength: 1 }}
+        transition={{ duration: 4, repeat: Infinity, repeatType: "reverse", delay: 1 }}
       />
-      <path 
-        d="M520 660L578 842 731 737 840 599 603 493 520 660 295 764 309 538 390 382 539 269 769 229 577.5 41.5 370 105 295 -36 126.5 79.5 237 261 102 382 40 599 -69 737 127 880"
+      
+      <motion.path
+        d="M150,500 L350,500 L400,550 L600,550 L650,600 L850,600"
+        stroke="url(#circuitGradient)"
+        strokeWidth="2"
         fill="none"
-        stroke="#8B5CF6"
-        strokeWidth="6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        filter="url(#glow)"
+        initial={{ pathLength: 0 }}
+        animate={{ pathLength: 1 }}
+        transition={{ duration: 5, repeat: Infinity, repeatType: "reverse", delay: 2 }}
       />
     </svg>
   </div>
 );
 
-// Floating particle that follows cursor
-const QuantumParticle = () => {
+// Quantum Cursor Tracker
+const QuantumCursor = () => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
-  const particleRef = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
   
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      // Add delay for trailing effect
-      setTimeout(() => {
-        if (particleRef.current) {
-          const x = e.clientX;
-          const y = e.clientY;
-          setPosition({ x, y });
-        }
-      }, 100);
+      setPosition({ x: e.clientX, y: e.clientY });
+      setVisible(true);
     };
     
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
+    const handleMouseLeave = () => setVisible(false);
+    
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseleave', handleMouseLeave);
+    
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseleave', handleMouseLeave);
+    };
   }, []);
   
   return (
-    <motion.div 
-      ref={particleRef}
-      className="fixed w-8 h-8 pointer-events-none z-50"
-      animate={{ 
-        x: position.x - 16, 
-        y: position.y - 16,
-        opacity: [0.5, 0.8, 0.5],
-        scale: [1, 1.1, 1]
+    <motion.div
+      className="fixed pointer-events-none z-50"
+      animate={{
+        x: position.x - 20,
+        y: position.y - 20,
+        opacity: visible ? 1 : 0
       }}
-      transition={{ 
-        type: "spring", 
-        stiffness: 120, 
-        damping: 20,
-        opacity: { 
-          repeat: Infinity, 
-          duration: 2 
-        },
-        scale: { 
-          repeat: Infinity, 
-          duration: 2 
-        }
-      }}
+      transition={{ type: "spring", stiffness: 500, damping: 28 }}
     >
-      <div className="w-full h-full rounded-full bg-gradient-to-r from-primary via-accent to-secondary blur-md"></div>
+      <div className="w-10 h-10 rounded-full bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 blur-sm opacity-70" />
+      <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-white rounded-full transform -translate-x-1/2 -translate-y-1/2" />
     </motion.div>
   );
 };
 
-// Form field with cyberpunk aesthetics
-const CyberFormField = ({ 
+// Morphing Input Field Component
+const QuantumInput = ({ 
   label, 
   type, 
   icon, 
   value, 
   onChange, 
-  required = true 
+  required = true,
+  name
 }: { 
   label: string; 
   type: string; 
@@ -118,36 +250,140 @@ const CyberFormField = ({
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   required?: boolean;
+  name: string;
 }) => {
+  const [focused, setFocused] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  
   return (
     <motion.div 
-      className="mb-6 relative"
+      className="relative mb-6"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
+      transition={{ duration: 0.5 }}
+      whileHover={{ scale: 1.02 }}
     >
-      <TextField
-        label={label}
-        type={type}
-        value={value}
-        onChange={onChange}
-        required={required}
-        leftElement={icon}
-        fullWidth
-        className="bg-black/30 border-white/10 backdrop-blur-md focus:border-primary/70 focus:ring-primary/30 transition-all duration-300"
-      />
-      <motion.div 
-        className="absolute bottom-0 left-0 h-[2px] bg-gradient-to-r from-primary via-accent to-primary rounded"
-        initial={{ width: "0%" }}
-        animate={{ width: value ? "100%" : "0%" }}
-        transition={{ duration: 0.4 }}
-      />
+      <div className="relative">
+        <motion.div
+          className="absolute inset-0 rounded-xl bg-gradient-to-r from-cyan-500/20 via-purple-500/20 to-pink-500/20 blur-sm"
+          animate={{
+            opacity: focused ? 1 : 0,
+            scale: focused ? 1.02 : 1
+          }}
+          transition={{ duration: 0.3 }}
+        />
+        
+        <div className="relative backdrop-blur-xl bg-black/30 border border-white/20 rounded-xl overflow-hidden">
+          <div className="flex items-center p-4">
+            <motion.div 
+              className="mr-3 text-cyan-400"
+              animate={{ 
+                rotate: focused ? 360 : 0,
+                scale: focused ? 1.1 : 1
+              }}
+              transition={{ duration: 0.3 }}
+            >
+              {icon}
+            </motion.div>
+            
+            <div className="flex-1">
+              <motion.label
+                className={`absolute transition-all duration-300 ${
+                  focused || value ? 'text-xs -top-2 left-2 text-cyan-400' : 'text-white/70 top-1/2 left-0 transform -translate-y-1/2'
+                }`}
+                animate={{
+                  y: focused || value ? -10 : 0,
+                  scale: focused || value ? 0.8 : 1,
+                  color: focused ? '#00f5ff' : '#ffffff70'
+                }}
+              >
+                {label}
+              </motion.label>
+              
+              <input
+                type={type === 'password' && showPassword ? 'text' : type}
+                name={name}
+                value={value}
+                onChange={onChange}
+                onFocus={() => setFocused(true)}
+                onBlur={() => setFocused(false)}
+                required={required}
+                className="w-full bg-transparent text-white placeholder-transparent focus:outline-none mt-2"
+              />
+            </div>
+            
+            {type === 'password' && (
+              <motion.button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="ml-2 text-white/50 hover:text-cyan-400 transition-colors"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </motion.button>
+            )}
+          </div>
+          
+          <motion.div 
+            className="h-0.5 bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500"
+            animate={{
+              scaleX: focused ? 1 : 0,
+              opacity: focused ? 1 : 0.3
+            }}
+            transition={{ duration: 0.3 }}
+            style={{ transformOrigin: 'left' }}
+          />
+        </div>
+      </div>
     </motion.div>
   );
 };
 
+// Holographic Login Card
+const HolographicCard = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
+  <motion.div
+    className={`relative ${className}`}
+    whileHover={{ 
+      rotateX: 5,
+      rotateY: 5,
+      scale: 1.02
+    }}
+    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+    style={{ transformStyle: "preserve-3d" }}
+  >
+    {/* Holographic background layers */}
+    <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 rounded-2xl opacity-30 blur-lg animate-pulse" />
+    <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 rounded-2xl opacity-40 blur-md" />
+    
+    {/* Main card */}
+    <div className="relative backdrop-blur-xl bg-black/40 border border-white/20 rounded-2xl overflow-hidden">
+      {/* Animated border flow */}
+      <motion.div
+        className="absolute inset-0 rounded-2xl"
+        style={{
+          background: 'linear-gradient(90deg, transparent, rgba(0, 245, 255, 0.5), transparent)',
+          backgroundSize: '200% 100%'
+        }}
+        animate={{
+          backgroundPosition: ['0% 0%', '200% 0%']
+        }}
+        transition={{
+          duration: 3,
+          repeat: Infinity,
+          ease: "linear"
+        }}
+      />
+      
+      {/* Content */}
+      <div className="relative z-10">
+        {children}
+      </div>
+    </div>
+  </motion.div>
+);
+
 const AdminLogin = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [credentials, setCredentials] = useState({ email: "", password: "" });
   const [isLoading, setIsLoading] = useState(false);
   const [isSignup, setIsSignup] = useState(false);
@@ -162,20 +398,19 @@ const AdminLogin = () => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate authentication
+    // Simulate quantum authentication
     setTimeout(() => {
       if (credentials.email === "admin@codebirdclub.com" && credentials.password === "admin") {
-        setIsAuthenticated(true);
         localStorage.setItem("adminAuthenticated", "true");
         toast({
-          title: "Access Granted",
-          description: "Welcome to the quantum admin interface.",
+          title: "🔮 Quantum Access Granted",
+          description: "Neural pathways synchronized. Welcome to the admin matrix.",
         });
         navigate("/admin");
       } else {
         toast({
-          title: "Access Denied",
-          description: "Invalid biometric signature detected.",
+          title: "⚡ Access Denied",
+          description: "Quantum signature mismatch detected. Please verify your credentials.",
           variant: "destructive",
         });
       }
@@ -185,205 +420,278 @@ const AdminLogin = () => {
 
   const toggleForm = () => {
     setIsSignup(!isSignup);
+    setCredentials({ email: "", password: "" });
   };
 
   return (
     <AnimatedPage>
       <Navbar />
-      <main className="pt-20 min-h-screen relative overflow-hidden">
-        {/* Background elements */}
-        <ParticlesBackground />
-        <CyberCircuitPattern />
-        <QuantumParticle />
+      <QuantumCursor />
+      
+      <main className="min-h-screen relative overflow-hidden">
+        {/* Quantum Background */}
+        <QuantumParticleSystem />
+        <CyberCircuitOverlay />
         
-        <div className="container mx-auto px-4 py-20 relative z-10">
-          <div className="max-w-md mx-auto">
-            {/* Animated Card */}
+        {/* Portal Gateway Effect */}
+        <motion.div
+          className="absolute top-1/2 left-1/2 w-96 h-96 rounded-full"
+          style={{
+            background: 'radial-gradient(circle, rgba(0,245,255,0.1) 0%, rgba(139,92,246,0.1) 50%, transparent 100%)',
+            transform: 'translate(-50%, -50%)'
+          }}
+          animate={{
+            scale: [1, 1.2, 1],
+            rotate: [0, 360],
+            opacity: [0.3, 0.6, 0.3]
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        
+        <div className="container mx-auto px-4 py-20 relative z-20 flex items-center justify-center min-h-screen">
+          <div className="max-w-md mx-auto w-full">
+            {/* Quantum Logo */}
             <motion.div
-              className="relative"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ 
-                type: "spring",
-                stiffness: 100,
-                damping: 15
-              }}
+              className="text-center mb-8"
+              initial={{ opacity: 0, y: -50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, type: "spring" }}
             >
-              {/* Glow effects */}
-              <div className="absolute -inset-1 bg-gradient-to-r from-primary via-accent to-secondary rounded-xl opacity-30 blur-lg animate-pulse"></div>
-              <div className="absolute -inset-0 bg-gradient-to-r from-primary via-accent to-secondary rounded-xl opacity-20 animate-glow"></div>
+              <motion.div
+                className="inline-block p-6 rounded-full bg-gradient-to-r from-cyan-500/20 to-purple-500/20 backdrop-blur-xl mb-4"
+                animate={{
+                  rotateY: [0, 360],
+                  scale: [1, 1.1, 1]
+                }}
+                transition={{
+                  rotateY: { duration: 4, repeat: Infinity, ease: "linear" },
+                  scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
+                }}
+              >
+                <Shield className="w-12 h-12 text-cyan-400" />
+              </motion.div>
               
-              {/* Card Content */}
-              <Card className="backdrop-blur-xl bg-black/40 border border-white/10 overflow-hidden relative z-10">
-                <div className="p-8">
-                  <div className="mb-6 text-center">
-                    <motion.div 
-                      className="inline-block rounded-full p-3 bg-gradient-to-r from-primary/20 to-secondary/20 backdrop-blur-md mb-4"
-                      animate={{ 
-                        rotateZ: [0, 10, 0, -10, 0],
-                      }}
-                      transition={{ 
-                        repeat: Infinity,
-                        duration: 5,
-                        ease: "easeInOut"
-                      }}
-                    >
-                      <div className="bg-gradient-to-r from-primary to-secondary rounded-full p-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
-                          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"></path>
-                          <path d="m15 9-6 6"></path>
-                          <path d="m9 9 6 6"></path>
-                        </svg>
-                      </div>
-                    </motion.div>
-                    <motion.h1 
-                      className="text-2xl font-bold mb-1"
-                      initial={{ opacity: 0, y: -20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 }}
-                    >
-                      {isSignup ? "Create Admin Access" : "Quantum Access Portal"}
-                    </motion.h1>
-                    <motion.p 
-                      className="text-sm text-foreground/70"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.3 }}
-                    >
-                      {isSignup ? "Initialize new admin biometrics" : "Authenticate your digital signature"}
-                    </motion.p>
-                  </div>
+              <motion.h1
+                className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent"
+                animate={{
+                  backgroundPosition: ['0% 50%', '100% 50%', '0% 50%']
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "linear"
+                }}
+                style={{
+                  backgroundSize: '200% 200%'
+                }}
+              >
+                Quantum Admin Portal
+              </motion.h1>
+              
+              <motion.p
+                className="text-white/70 mt-2"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+              >
+                Neural authentication interface
+              </motion.p>
+            </motion.div>
 
-                  <AnimatePresence mode="wait">
-                    <motion.form 
-                      key={isSignup ? "signup" : "login"}
-                      onSubmit={handleSubmit}
-                      initial={{ opacity: 0, x: isSignup ? -20 : 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: isSignup ? 20 : -20 }}
-                      transition={{ duration: 0.3 }}
-                      className="space-y-4"
-                    >
+            {/* Holographic Auth Card */}
+            <HolographicCard>
+              <div className="p-8">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={isSignup ? 'signup' : 'login'}
+                    initial={{ opacity: 0, rotateY: -90 }}
+                    animate={{ opacity: 1, rotateY: 0 }}
+                    exit={{ opacity: 0, rotateY: 90 }}
+                    transition={{ duration: 0.5, type: "spring" }}
+                  >
+                    {/* Form Toggle */}
+                    <div className="flex mb-6 bg-black/30 rounded-xl p-1">
+                      <motion.button
+                        type="button"
+                        onClick={() => !isSignup && toggleForm()}
+                        className={`flex-1 py-3 px-4 rounded-lg text-sm font-medium transition-all ${
+                          !isSignup 
+                            ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white' 
+                            : 'text-white/70 hover:text-white'
+                        }`}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        Neural Login
+                      </motion.button>
+                      <motion.button
+                        type="button"
+                        onClick={() => isSignup && toggleForm()}
+                        className={`flex-1 py-3 px-4 rounded-lg text-sm font-medium transition-all ${
+                          isSignup 
+                            ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' 
+                            : 'text-white/70 hover:text-white'
+                        }`}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        Quantum Register
+                      </motion.button>
+                    </div>
+
+                    {/* Form */}
+                    <form onSubmit={handleSubmit} className="space-y-6">
                       {isSignup && (
-                        <CyberFormField 
-                          label="Admin Code"
+                        <QuantumInput
+                          label="Admin Access Code"
                           type="text"
                           icon={<AlertCircle className="h-4 w-4" />}
                           value=""
                           onChange={() => {}}
+                          name="accessCode"
                         />
                       )}
                       
-                      <CyberFormField 
+                      <QuantumInput
                         label="Digital ID"
                         type="email"
                         icon={<Mail className="h-4 w-4" />}
                         value={credentials.email}
-                        onChange={(e) => handleChange(e)}
+                        onChange={handleChange}
+                        name="email"
                       />
                       
-                      <CyberFormField 
+                      <QuantumInput
                         label="Neural Passkey"
                         type="password"
                         icon={<Lock className="h-4 w-4" />}
                         value={credentials.password}
-                        onChange={(e) => handleChange(e)}
+                        onChange={handleChange}
+                        name="password"
                       />
 
-                      <motion.div 
-                        className="pt-2"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.5 }}
+                      {/* Quantum Submit Button */}
+                      <motion.button
+                        type="submit"
+                        disabled={isLoading}
+                        className="w-full relative overflow-hidden group"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
                       >
-                        <Button 
-                          type="submit"
-                          className="w-full bg-gradient-to-r from-primary via-accent to-secondary text-white border-0 h-12"
-                          leftIcon={isLoading ? <Loader2 className="animate-spin" /> : undefined}
-                          isLoading={isLoading}
-                          loadingText="Authenticating..."
-                        >
-                          {isSignup ? "Initialize Access" : "Authenticate"}
-                        </Button>
-                      </motion.div>
-                      
-                      <div className="flex items-center justify-center gap-4 mt-6">
-                        <hr className="flex-grow border-t border-white/10" />
-                        <span className="text-xs text-foreground/60">or continue with</span>
-                        <hr className="flex-grow border-t border-white/10" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 rounded-xl" />
+                        <motion.div
+                          className="absolute inset-0 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 rounded-xl opacity-0 group-hover:opacity-100"
+                          transition={{ duration: 0.3 }}
+                        />
+                        
+                        <div className="relative backdrop-blur-xl bg-black/20 m-0.5 rounded-lg py-4 px-6 flex items-center justify-center">
+                          {isLoading ? (
+                            <motion.div
+                              className="flex items-center gap-2"
+                              animate={{ opacity: [0.5, 1, 0.5] }}
+                              transition={{ duration: 1, repeat: Infinity }}
+                            >
+                              <Loader2 className="animate-spin" size={20} />
+                              <span>Quantum sync...</span>
+                            </motion.div>
+                          ) : (
+                            <span className="font-medium">
+                              {isSignup ? "Initialize Matrix" : "Enter Quantum Realm"}
+                            </span>
+                          )}
+                        </div>
+                        
+                        {/* Ripple effect */}
+                        <motion.div
+                          className="absolute inset-0 bg-white/20 rounded-xl"
+                          initial={{ scale: 0, opacity: 1 }}
+                          animate={{ scale: 4, opacity: 0 }}
+                          transition={{ duration: 0.6, repeat: Infinity }}
+                        />
+                      </motion.button>
+                    </form>
+
+                    {/* Social Auth */}
+                    <div className="mt-6">
+                      <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                          <div className="w-full border-t border-white/20" />
+                        </div>
+                        <div className="relative flex justify-center text-xs">
+                          <span className="bg-transparent px-2 text-white/60">Neural bridge protocols</span>
+                        </div>
                       </div>
                       
-                      <div className="grid grid-cols-2 gap-4 mt-2">
-                        <Button 
-                          variant="outline"
-                          className="h-12 backdrop-blur-md bg-white/5 hover:bg-white/10 border-white/10 transition-all duration-300"
+                      <div className="grid grid-cols-2 gap-4 mt-4">
+                        <motion.button
+                          type="button"
+                          className="relative overflow-hidden backdrop-blur-xl bg-black/30 border border-white/20 rounded-lg py-3 px-4 hover:bg-white/10 transition-all group"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
                           disabled
                         >
-                          <svg width="20" height="20" fill="currentColor" className="mr-2">
-                            <path d="M15.545 6.558a9.42 9.42 0 0 0 .139 1.626c2.188-.546 3.086-1.7 3.086-1.7.21.636.2 1.25-.031 1.846 1.243-1.08 1.3-2.804.874-3.977a.52.52 0 0 0-.595-.329h-.006l-3.467.941zm-2.707.945a.5.5 0 0 0-.834-.334l-.874 1.091a.5.5 0 0 0 .122.778l.96.493a7.584 7.584 0 0 0-.245-.02zm-8.364.59a.5.5 0 0 0 .532-.744l-.854-1.105a.5.5 0 0 0-.764.034l-.302.396a7.496 7.496 0 0 0 1.388 1.419zm5.252-5.059l.253-2.528a.5.5 0 0 0-.4-.479l-2.2-.437a.5.5 0 0 0-.581.54l.125 1.253a7.465 7.465 0 0 0 2.803 1.651zm-2.973 5.22l2.92-2.919a.5.5 0 0 0 0-.707l-2.92-2.92a.5.5 0 1 0-.707.707L8.323 5.5l-2.96 2.96a.5.5 0 0 0 .707.707l2.96-2.96a.5.5 0 0 0 0-.707l-2.96-2.96a.5.5 0 1 0-.707.707l2.96 2.96-2.96 2.96a.5.5 0 0 0 .707.707l2.96-2.96z" />
-                          </svg>
-                          GitHub
-                        </Button>
-                        <Button 
-                          variant="outline"
-                          className="h-12 backdrop-blur-md bg-white/5 hover:bg-white/10 border-white/10 transition-all duration-300"
+                          <div className="flex items-center justify-center gap-2">
+                            <Github size={18} />
+                            <span className="text-sm">GitHub</span>
+                          </div>
+                        </motion.button>
+                        
+                        <motion.button
+                          type="button"
+                          className="relative overflow-hidden backdrop-blur-xl bg-black/30 border border-white/20 rounded-lg py-3 px-4 hover:bg-white/10 transition-all group"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
                           disabled
                         >
-                          <svg
-                            className="mr-2 h-4 w-4"
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-                            <path d="M1.42 6.357l3.244 1.946c.307-1.075.652-2.057 1.03-2.942m16.886 0A12.09 12.09 0 0 1 24 9a12.09 12.09 0 0 1-1.42 5.639l-3.244-1.946a7.16 7.16 0 0 0 .844-3.693 7.16 7.16 0 0 0-.844-3.693M3 9a6 6 0 0 0 6 6v-3H5.4A1.4 1.4 0 0 1 4 10.6V7.4A1.4 1.4 0 0 1 5.4 6H9V3a6 6 0 0 0-6 6m18 0a6 6 0 0 0-6-6v3h3.6A1.4 1.4 0 0 1 20 7.4v3.2a1.4 1.4 0 0 1-1.4 1.4H15v3a6 6 0 0 0 6-6" />
-                          </svg>
-                          Google
-                        </Button>
+                          <div className="flex items-center justify-center gap-2">
+                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                            </svg>
+                            <span className="text-sm">Google</span>
+                          </div>
+                        </motion.button>
                       </div>
-                    </motion.form>
-                  </AnimatePresence>
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+              
+              {/* Animated Bottom Border */}
+              <motion.div
+                className="h-1 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500"
+                animate={{
+                  x: ['-100%', '100%']
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "linear"
+                }}
+              />
+            </HolographicCard>
 
-                  <div className="mt-6 text-center">
-                    <button 
-                      onClick={toggleForm}
-                      className="text-sm text-foreground/70 hover:text-foreground transition-colors"
-                    >
-                      {isSignup ? "Already have access? Authenticate" : "Need access? Initialize new credentials"}
-                    </button>
-                  </div>
-                </div>
-                
-                {/* Animated border bottom */}
-                <div className="h-1 w-full bg-gradient-to-r from-primary via-accent to-secondary overflow-hidden">
-                  <motion.div
-                    className="h-full w-20 bg-white/70 blur-sm"
-                    animate={{ 
-                      x: [-80, 400],
-                    }}
-                    transition={{ 
-                      repeat: Infinity,
-                      duration: 2,
-                      ease: "linear"
-                    }}
-                  />
-                </div>
-              </Card>
-            </motion.div>
-
-            <div className="mt-6 text-center text-sm text-foreground/60">
-              <p>Demo credentials:</p>
+            {/* Demo Credentials */}
+            <motion.div
+              className="mt-6 text-center text-sm text-white/60"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1 }}
+            >
+              <p className="mb-1">🔮 Demo Quantum Credentials:</p>
               <p>Email: admin@codebirdclub.com</p>
               <p>Password: admin</p>
-            </div>
+            </motion.div>
           </div>
         </div>
       </main>
+      
       <Footer />
     </AnimatedPage>
   );
