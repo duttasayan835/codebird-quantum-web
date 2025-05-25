@@ -4,6 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
+// Type for the database function response
+interface DatabaseFunctionResponse {
+  success: boolean;
+  message: string;
+  action?: string;
+}
+
 export const useSavedItems = () => {
   const { user } = useAuth();
   
@@ -36,7 +43,7 @@ export const useToggleSavedItem = () => {
       });
       
       if (error) throw error;
-      return data;
+      return data as DatabaseFunctionResponse;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["saved-items"] });

@@ -4,6 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
+// Type for the database function response
+interface DatabaseFunctionResponse {
+  success: boolean;
+  message: string;
+  action?: string;
+}
+
 export const useEventRegistration = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -17,13 +24,13 @@ export const useEventRegistration = () => {
           event_id: eventId 
         });
         if (error) throw error;
-        return data;
+        return data as DatabaseFunctionResponse;
       } else {
         const { data, error } = await supabase.rpc('unregister_from_event', { 
           event_id: eventId 
         });
         if (error) throw error;
-        return data;
+        return data as DatabaseFunctionResponse;
       }
     },
     onSuccess: (data, { action }) => {
