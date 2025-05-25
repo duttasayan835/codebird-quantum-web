@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import Index from "./pages/Index";
 import FuturisticCursor from "./components/FuturisticCursor";
 
@@ -42,47 +43,49 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AuthProvider>
-            <FuturisticCursor />
-            <Suspense fallback={
-              <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-black">
-                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-              </div>
-            }>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/about" element={<AboutPage />} />
-                <Route path="/team" element={<TeamPage />} />
-                <Route path="/projects" element={<ProjectsPage />} />
-                <Route path="/projects/featured" element={<FeaturedProjectsPage />} />
-                <Route path="/projects/open-source" element={<OpenSourceProjectsPage />} />
-                <Route path="/events" element={<EventsPage />} />
-                <Route path="/events/:id" element={<EventDetail />} />
-                <Route path="/resources" element={<ResourcesPage />} />
-                <Route path="/resources/tutorials" element={<TutorialsPage />} />
-                <Route path="/resources/challenges" element={<ChallengesPage />} />
-                <Route path="/blog" element={<BlogPage />} />
-                <Route path="/gallery" element={<GalleryPage />} />
-                <Route path="/contact" element={<ContactPage />} />
-                <Route path="/auth" element={<AuthPage />} />
-                <Route path="/auth/callback" element={<AuthCallbackPage />} />
-                <Route path="/admin" element={<AdminPage />} />
-                <Route path="/admin-login" element={<AdminLogin />} />
-                <Route path="/dashboard" element={<UserDashboard />} />
-                <Route path="/profile" element={<ProfilePage />} />
-                <Route path="/join" element={<JoinPage />} />
-                <Route path="/inference" element={<InferencePage />} />
-                <Route path="/privacy" element={<PrivacyPage />} />
-                <Route path="/terms" element={<TermsPage />} />
-                <Route path="/cookies" element={<CookiesPage />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Suspense>
-          </AuthProvider>
-        </BrowserRouter>
+        <ThemeProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AuthProvider>
+              <FuturisticCursor />
+              <Suspense fallback={
+                <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-black">
+                  <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+                </div>
+              }>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/about" element={<AboutPage />} />
+                  <Route path="/team" element={<TeamPage />} />
+                  <Route path="/projects" element={<ProjectsPage />} />
+                  <Route path="/projects/featured" element={<FeaturedProjectsPage />} />
+                  <Route path="/projects/open-source" element={<OpenSourceProjectsPage />} />
+                  <Route path="/events" element={<EventsPage />} />
+                  <Route path="/events/:id" element={<EventDetail />} />
+                  <Route path="/resources" element={<ResourcesPage />} />
+                  <Route path="/resources/tutorials" element={<TutorialsPage />} />
+                  <Route path="/resources/challenges" element={<ChallengesPage />} />
+                  <Route path="/blog" element={<BlogPage />} />
+                  <Route path="/gallery" element={<GalleryPage />} />
+                  <Route path="/contact" element={<ContactPage />} />
+                  <Route path="/auth" element={<AuthPage />} />
+                  <Route path="/auth/callback" element={<AuthCallbackPage />} />
+                  <Route path="/admin" element={<AdminPage />} />
+                  <Route path="/admin-login" element={<AdminLogin />} />
+                  <Route path="/dashboard" element={<UserDashboard />} />
+                  <Route path="/profile" element={<ProfilePage />} />
+                  <Route path="/join" element={<JoinPage />} />
+                  <Route path="/inference" element={<InferencePage />} />
+                  <Route path="/privacy" element={<PrivacyPage />} />
+                  <Route path="/terms" element={<TermsPage />} />
+                  <Route path="/cookies" element={<CookiesPage />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
+            </AuthProvider>
+          </BrowserRouter>
+        </ThemeProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );
