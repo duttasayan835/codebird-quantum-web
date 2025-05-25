@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { OrbitControls, Sphere, MeshDistortMaterial } from "@react-three/drei";
 import * as THREE from "three";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -36,18 +35,18 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
-// 3D Floating Particles Background
-const FloatingParticles = () => {
+// Simplified 3D Floating Particles Background
+const SimpleFloatingParticles = () => {
   const pointsRef = useRef<THREE.Points>(null);
   
   const particlesGeometry = useMemo(() => {
     const geometry = new THREE.BufferGeometry();
-    const positions = new Float32Array(300 * 3);
+    const positions = new Float32Array(200 * 3);
     
-    for (let i = 0; i < 300; i++) {
-      positions[i * 3] = (Math.random() - 0.5) * 20;
-      positions[i * 3 + 1] = (Math.random() - 0.5) * 20;
-      positions[i * 3 + 2] = (Math.random() - 0.5) * 20;
+    for (let i = 0; i < 200; i++) {
+      positions[i * 3] = (Math.random() - 0.5) * 15;
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 15;
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 15;
     }
     
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -74,36 +73,38 @@ const FloatingParticles = () => {
   );
 };
 
-// 3D Background Scene
+// Simple animated spheres
+const AnimatedSphere = ({ position, color }: { position: [number, number, number], color: string }) => {
+  const meshRef = useRef<THREE.Mesh>(null);
+  
+  useFrame((state) => {
+    if (meshRef.current) {
+      meshRef.current.rotation.x = state.clock.elapsedTime * 0.2;
+      meshRef.current.rotation.y = state.clock.elapsedTime * 0.3;
+      meshRef.current.position.y = position[1] + Math.sin(state.clock.elapsedTime) * 0.5;
+    }
+  });
+
+  return (
+    <mesh ref={meshRef} position={position}>
+      <sphereGeometry args={[0.8, 16, 16]} />
+      <meshBasicMaterial color={color} transparent opacity={0.3} wireframe />
+    </mesh>
+  );
+};
+
+// Simplified 3D Background Scene
 const ParticleBackground = () => (
   <div className="fixed inset-0 z-0">
     <Canvas 
-      camera={{ position: [0, 0, 5], fov: 75 }}
+      camera={{ position: [0, 0, 8], fov: 75 }}
       gl={{ alpha: true, antialias: true }}
-      onCreated={({ gl }) => {
-        gl.setClearColor(0x000000, 0);
-      }}
     >
-      <ambientLight intensity={0.5} />
-      <pointLight position={[10, 10, 10]} />
-      <FloatingParticles />
-      <Sphere args={[1, 32, 32]} position={[-4, 0, -5]}>
-        <MeshDistortMaterial
-          color="#8b5cf6"
-          distort={0.3}
-          speed={2}
-          roughness={0.4}
-        />
-      </Sphere>
-      <Sphere args={[0.8, 32, 32]} position={[4, -2, -3]}>
-        <MeshDistortMaterial
-          color="#06b6d4"
-          distort={0.4}
-          speed={1.5}
-          roughness={0.2}
-        />
-      </Sphere>
-      <OrbitControls enableZoom={false} enablePan={false} enableRotate={false} />
+      <ambientLight intensity={0.3} />
+      <pointLight position={[10, 10, 10]} intensity={0.5} />
+      <SimpleFloatingParticles />
+      <AnimatedSphere position={[-3, 0, -2]} color="#8b5cf6" />
+      <AnimatedSphere position={[3, -1, -1]} color="#06b6d4" />
     </Canvas>
   </div>
 );
