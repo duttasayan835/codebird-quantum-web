@@ -12,6 +12,7 @@ export type Database = {
       blog_posts: {
         Row: {
           author_id: string | null
+          author_name: string | null
           content: string
           created_at: string | null
           excerpt: string | null
@@ -25,6 +26,7 @@ export type Database = {
         }
         Insert: {
           author_id?: string | null
+          author_name?: string | null
           content: string
           created_at?: string | null
           excerpt?: string | null
@@ -38,6 +40,7 @@ export type Database = {
         }
         Update: {
           author_id?: string | null
+          author_name?: string | null
           content?: string
           created_at?: string | null
           excerpt?: string | null
@@ -59,18 +62,63 @@ export type Database = {
           },
         ]
       }
+      event_registrations: {
+        Row: {
+          event_id: string | null
+          id: string
+          registered_at: string | null
+          reminder_sent: boolean | null
+          user_id: string | null
+        }
+        Insert: {
+          event_id?: string | null
+          id?: string
+          registered_at?: string | null
+          reminder_sent?: boolean | null
+          user_id?: string | null
+        }
+        Update: {
+          event_id?: string | null
+          id?: string
+          registered_at?: string | null
+          reminder_sent?: boolean | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_registrations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_registrations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
           created_at: string | null
           current_participants: number | null
           date: string
           description: string | null
+          end_date: string | null
+          hosted_by: string | null
           id: string
           image_url: string | null
           location: string | null
           max_participants: number | null
+          registered_users: string[] | null
+          reminders_sent: boolean | null
+          start_date: string | null
           status: string | null
           title: string
+          type: string | null
           updated_at: string | null
         }
         Insert: {
@@ -78,12 +126,18 @@ export type Database = {
           current_participants?: number | null
           date: string
           description?: string | null
+          end_date?: string | null
+          hosted_by?: string | null
           id?: string
           image_url?: string | null
           location?: string | null
           max_participants?: number | null
+          registered_users?: string[] | null
+          reminders_sent?: boolean | null
+          start_date?: string | null
           status?: string | null
           title: string
+          type?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -91,15 +145,29 @@ export type Database = {
           current_participants?: number | null
           date?: string
           description?: string | null
+          end_date?: string | null
+          hosted_by?: string | null
           id?: string
           image_url?: string | null
           location?: string | null
           max_participants?: number | null
+          registered_users?: string[] | null
+          reminders_sent?: boolean | null
+          start_date?: string | null
           status?: string | null
           title?: string
+          type?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "events_hosted_by_fkey"
+            columns: ["hosted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       feedback: {
         Row: {
@@ -139,6 +207,7 @@ export type Database = {
           event_id: string | null
           id: string
           image_url: string
+          liked_by: string[] | null
           project_id: string | null
           title: string
         }
@@ -149,6 +218,7 @@ export type Database = {
           event_id?: string | null
           id?: string
           image_url: string
+          liked_by?: string[] | null
           project_id?: string | null
           title: string
         }
@@ -159,6 +229,7 @@ export type Database = {
           event_id?: string | null
           id?: string
           image_url?: string
+          liked_by?: string[] | null
           project_id?: string | null
           title?: string
         }
@@ -179,14 +250,58 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          message: string
+          read: boolean | null
+          title: string
+          type: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          message: string
+          read?: boolean | null
+          title: string
+          type?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          message?: string
+          read?: boolean | null
+          title?: string
+          type?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
           bio: string | null
           created_at: string
+          event_reminders: string[] | null
           full_name: string | null
           id: string
+          joined_at: string | null
           role: Database["public"]["Enums"]["user_role"] | null
+          saved_items: Json | null
           updated_at: string
           username: string | null
           website: string | null
@@ -195,9 +310,12 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          event_reminders?: string[] | null
           full_name?: string | null
           id: string
+          joined_at?: string | null
           role?: Database["public"]["Enums"]["user_role"] | null
+          saved_items?: Json | null
           updated_at?: string
           username?: string | null
           website?: string | null
@@ -206,9 +324,12 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          event_reminders?: string[] | null
           full_name?: string | null
           id?: string
+          joined_at?: string | null
           role?: Database["public"]["Enums"]["user_role"] | null
+          saved_items?: Json | null
           updated_at?: string
           username?: string | null
           website?: string | null
@@ -221,10 +342,12 @@ export type Database = {
           created_at: string | null
           demo_url: string | null
           description: string | null
+          domain: string | null
           featured: boolean | null
           github_url: string | null
           id: string
           image_url: string | null
+          liked_by: string[] | null
           technology_stack: string[] | null
           title: string
           updated_at: string | null
@@ -234,10 +357,12 @@ export type Database = {
           created_at?: string | null
           demo_url?: string | null
           description?: string | null
+          domain?: string | null
           featured?: boolean | null
           github_url?: string | null
           id?: string
           image_url?: string | null
+          liked_by?: string[] | null
           technology_stack?: string[] | null
           title: string
           updated_at?: string | null
@@ -247,10 +372,12 @@ export type Database = {
           created_at?: string | null
           demo_url?: string | null
           description?: string | null
+          domain?: string | null
           featured?: boolean | null
           github_url?: string | null
           id?: string
           image_url?: string | null
+          liked_by?: string[] | null
           technology_stack?: string[] | null
           title?: string
           updated_at?: string | null
@@ -263,9 +390,11 @@ export type Database = {
           created_at: string | null
           description: string | null
           difficulty: string | null
+          enrolled_users: string[] | null
           featured: boolean | null
           id: string
           image_url: string | null
+          likes: number | null
           tags: string[] | null
           title: string
           type: string | null
@@ -277,9 +406,11 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           difficulty?: string | null
+          enrolled_users?: string[] | null
           featured?: boolean | null
           id?: string
           image_url?: string | null
+          likes?: number | null
           tags?: string[] | null
           title: string
           type?: string | null
@@ -291,9 +422,11 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           difficulty?: string | null
+          enrolled_users?: string[] | null
           featured?: boolean | null
           id?: string
           image_url?: string | null
+          likes?: number | null
           tags?: string[] | null
           title?: string
           type?: string | null
@@ -368,6 +501,38 @@ export type Database = {
         }
         Relationships: []
       }
+      user_saved_items: {
+        Row: {
+          content_id: string
+          content_type: string
+          id: string
+          saved_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          content_id: string
+          content_type: string
+          id?: string
+          saved_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          content_id?: string
+          content_type?: string
+          id?: string
+          saved_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_saved_items_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -376,6 +541,18 @@ export type Database = {
       is_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      register_for_event: {
+        Args: { event_id: string }
+        Returns: Json
+      }
+      toggle_saved_item: {
+        Args: { content_type: string; content_id: string }
+        Returns: Json
+      }
+      unregister_from_event: {
+        Args: { event_id: string }
+        Returns: Json
       }
     }
     Enums: {

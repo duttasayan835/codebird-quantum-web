@@ -34,6 +34,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const TermsPage = lazy(() => import("./pages/TermsPage"));
 const CookiesPage = lazy(() => import("./pages/CookiesPage"));
+const AuthCallbackPage = lazy(() => import("./pages/AuthCallbackPage"));
 
 const queryClient = new QueryClient();
 
@@ -67,6 +68,7 @@ function App() {
                 <Route path="/gallery" element={<GalleryPage />} />
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/auth" element={<AuthPage />} />
+                <Route path="/auth/callback" element={<AuthCallbackPage />} />
                 <Route path="/admin" element={<AdminPage />} />
                 <Route path="/admin-login" element={<AdminLogin />} />
                 <Route path="/dashboard" element={<UserDashboard />} />
