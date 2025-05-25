@@ -40,14 +40,18 @@ import { toast } from "sonner";
 const FloatingParticles = () => {
   const pointsRef = useRef<THREE.Points>(null);
   
-  const particlesPosition = useMemo(() => {
+  const particlesGeometry = useMemo(() => {
+    const geometry = new THREE.BufferGeometry();
     const positions = new Float32Array(300 * 3);
+    
     for (let i = 0; i < 300; i++) {
       positions[i * 3] = (Math.random() - 0.5) * 20;
       positions[i * 3 + 1] = (Math.random() - 0.5) * 20;
       positions[i * 3 + 2] = (Math.random() - 0.5) * 20;
     }
-    return positions;
+    
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    return geometry;
   }, []);
 
   useFrame((state) => {
@@ -58,15 +62,7 @@ const FloatingParticles = () => {
   });
 
   return (
-    <points ref={pointsRef}>
-      <bufferGeometry>
-        <bufferAttribute
-          attach="attributes-position"
-          count={300}
-          array={particlesPosition}
-          itemSize={3}
-        />
-      </bufferGeometry>
+    <points ref={pointsRef} geometry={particlesGeometry}>
       <pointsMaterial 
         size={0.05} 
         color="#00f5ff" 
