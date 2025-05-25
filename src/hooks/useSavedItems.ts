@@ -43,7 +43,7 @@ export const useToggleSavedItem = () => {
       });
       
       if (error) throw error;
-      return data as DatabaseFunctionResponse;
+      return data as unknown as DatabaseFunctionResponse;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["saved-items"] });

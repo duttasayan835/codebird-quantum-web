@@ -24,13 +24,13 @@ export const useEventRegistration = () => {
           event_id: eventId 
         });
         if (error) throw error;
-        return data as DatabaseFunctionResponse;
+        return data as unknown as DatabaseFunctionResponse;
       } else {
         const { data, error } = await supabase.rpc('unregister_from_event', { 
           event_id: eventId 
         });
         if (error) throw error;
-        return data as DatabaseFunctionResponse;
+        return data as unknown as DatabaseFunctionResponse;
       }
     },
     onSuccess: (data, { action }) => {
