@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ChevronDown, User, LogOut, Shield, Settings } from "lucide-react";
+import { Menu, X, ChevronDown, User, LogOut, Shield, Settings, LayoutDashboard } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Navbar = () => {
@@ -165,6 +164,14 @@ const Navbar = () => {
             transition={{ duration: 0.2 }}
             className="absolute right-0 mt-2 w-48 bg-black/90 backdrop-blur-xl border border-white/10 rounded-lg shadow-xl z-50"
           >
+            <Link
+              to="/dashboard"
+              onClick={() => setDropdownOpen(false)}
+              className="flex items-center gap-2 px-4 py-3 text-sm hover:bg-white/10 transition-colors"
+            >
+              <LayoutDashboard size={16} />
+              Dashboard
+            </Link>
             <Link
               to="/profile"
               onClick={() => setDropdownOpen(false)}

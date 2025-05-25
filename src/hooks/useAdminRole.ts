@@ -18,7 +18,11 @@ export const useAdminRole = () => {
         .eq("id", user.id)
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching user role:", error);
+        return false;
+      }
+      
       return data?.role === 'admin';
     },
     enabled: !!user,
@@ -48,5 +52,60 @@ export const usePromoteToAdmin = () => {
     onError: (error: any) => {
       toast.error(error.message || "Failed to promote user to admin");
     },
+  });
+};
+
+// Hook to register for events
+export const useEventRegistration = () => {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  
+  return useMutation({
+    mutationFn: async ({ eventId, action }: { eventId: string; action: 'register' | 'unregister' }) => {
+      if (!user) throw new Error("Must be logged in");
+      
+      if (action === 'register') {
+        // In a real implementation, you'd have an event_registrations table
+        // For now, we'll just update the current_participants count
+        const { data: event } = await supabase
+          .from("events")
+          .select("current_participants")
+          .eq("id", eventId)
+          .single();
+          
+        if (event) {
+          const { error } = await supabase
+            .from("events")
+            .update({ current_participants: (event.current_participants || 0) + 1 })
+            .eq("id", eventId);
+            
+          if (error) throw error;
+        }
+      } else {
+        const { data: event } = await supabase
+          .from("events")
+          .select("current_participants")
+          .eq("id", eventId)
+          .single();
+          
+        if (event && event.current_participants > 0) {
+          const { error } = await supabase
+            .from("events")
+            .update({ current_participants: event.current_participants - 1 })
+            .eq("id", eventId);
+            
+          if (error) throw error;
+        }
+      }
+      
+      return { eventId, action };
+    },
+    onSuccess: ({ action }) => {
+      queryClient.invalidateQueries({ queryKey: ["events"] });
+      toast.success(action === 'register' ? "Successfully registered!" : "Successfully unregistered!");
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Registration failed");
+    }
   });
 };
