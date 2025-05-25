@@ -1,9 +1,8 @@
-
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Text, Sphere, MeshDistortMaterial } from "@react-three/drei";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { OrbitControls, Sphere, MeshDistortMaterial } from "@react-three/drei";
 import * as THREE from "three";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -39,26 +38,35 @@ import { toast } from "sonner";
 
 // 3D Floating Particles Background
 const FloatingParticles = () => {
-  const points = useRef<THREE.Points>(null);
+  const pointsRef = useRef<THREE.Points>(null);
   
-  useEffect(() => {
-    if (points.current) {
-      const geometry = new THREE.BufferGeometry();
-      const positions = new Float32Array(300 * 3);
-      
-      for (let i = 0; i < 300; i++) {
-        positions[i * 3] = (Math.random() - 0.5) * 20;
-        positions[i * 3 + 1] = (Math.random() - 0.5) * 20;
-        positions[i * 3 + 2] = (Math.random() - 0.5) * 20;
-      }
-      
-      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-      points.current.geometry = geometry;
+  const particlesPosition = useMemo(() => {
+    const positions = new Float32Array(300 * 3);
+    for (let i = 0; i < 300; i++) {
+      positions[i * 3] = (Math.random() - 0.5) * 20;
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 20;
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 20;
     }
+    return positions;
   }, []);
 
+  useFrame((state) => {
+    if (pointsRef.current) {
+      pointsRef.current.rotation.x = state.clock.elapsedTime * 0.1;
+      pointsRef.current.rotation.y = state.clock.elapsedTime * 0.05;
+    }
+  });
+
   return (
-    <points ref={points}>
+    <points ref={pointsRef}>
+      <bufferGeometry>
+        <bufferAttribute
+          attach="attributes-position"
+          count={300}
+          array={particlesPosition}
+          itemSize={3}
+        />
+      </bufferGeometry>
       <pointsMaterial 
         size={0.05} 
         color="#00f5ff" 
@@ -73,14 +81,19 @@ const FloatingParticles = () => {
 // 3D Background Scene
 const ParticleBackground = () => (
   <div className="fixed inset-0 z-0">
-    <Canvas camera={{ position: [0, 0, 5], fov: 75 }}>
+    <Canvas 
+      camera={{ position: [0, 0, 5], fov: 75 }}
+      gl={{ alpha: true, antialias: true }}
+      onCreated={({ gl }) => {
+        gl.setClearColor(0x000000, 0);
+      }}
+    >
       <ambientLight intensity={0.5} />
       <pointLight position={[10, 10, 10]} />
       <FloatingParticles />
       <Sphere args={[1, 32, 32]} position={[-4, 0, -5]}>
         <MeshDistortMaterial
           color="#8b5cf6"
-          attach="material"
           distort={0.3}
           speed={2}
           roughness={0.4}
@@ -89,7 +102,6 @@ const ParticleBackground = () => (
       <Sphere args={[0.8, 32, 32]} position={[4, -2, -3]}>
         <MeshDistortMaterial
           color="#06b6d4"
-          attach="material"
           distort={0.4}
           speed={1.5}
           roughness={0.2}
