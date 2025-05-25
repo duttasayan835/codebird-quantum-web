@@ -41,14 +41,14 @@ const queryClient = new QueryClient();
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
         <ThemeProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+          <TooltipProvider>
             <AuthProvider>
               <FuturisticCursor />
+              <Toaster />
+              <Sonner />
               <Suspense fallback={
                 <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-black">
                   <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
@@ -84,10 +84,10 @@ function App() {
                 </Routes>
               </Suspense>
             </AuthProvider>
-          </BrowserRouter>
+          </TooltipProvider>
         </ThemeProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
+      </QueryClientProvider>
+    </BrowserRouter>
   );
 }
 
