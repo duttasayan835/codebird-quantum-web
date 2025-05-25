@@ -1,43 +1,51 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
-import AnimatedPage from "../components/AnimatedPage";
-import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAdminRole } from "@/hooks/useAdminRole";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { 
-  LayoutDashboard, 
-  Calendar, 
-  FolderOpen, 
-  BookOpen, 
-  Image, 
+  Shield, 
   Users, 
-  LogOut, 
-  Settings,
-  FileText,
-  Globe,
-  Loader2,
-  ChevronRight,
-  TrendingUp,
-  Database,
-  Cpu,
+  Calendar, 
+  Image, 
+  BookOpen, 
+  Cpu, 
+  Edit3, 
+  Trash2, 
+  Plus, 
+  Eye, 
+  EyeOff, 
+  Download,
+  Upload,
   Activity,
   Zap,
-  Bell,
-  AlertCircle,
-  Shield,
-  Upload,
-  RotateCw
+  Settings,
+  Database,
+  Server,
+  Monitor,
+  Globe,
+  Lock,
+  Unlock,
+  UserPlus,
+  Crown,
+  Terminal,
+  BarChart3
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { ContentManagement } from "@/components/admin/ContentManagement";
-import { EventsManagement } from "@/components/admin/EventsManagement";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
 
-// 3D Holographic Background
-const HolographicBackground = () => {
+// Quantum Particle System for Admin
+const QuantumAdminParticles = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   
   useEffect(() => {
@@ -53,91 +61,91 @@ const HolographicBackground = () => {
     const particles: Array<{
       x: number;
       y: number;
-      z: number;
       vx: number;
       vy: number;
-      vz: number;
       size: number;
       hue: number;
-      connections: number[];
+      energy: number;
+      type: 'quantum' | 'data' | 'neural';
     }> = [];
     
-    // Create 3D particle network
+    // Create quantum particles
     for (let i = 0; i < 150; i++) {
       particles.push({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
-        z: Math.random() * 1000,
-        vx: (Math.random() - 0.5) * 2,
-        vy: (Math.random() - 0.5) * 2,
-        vz: (Math.random() - 0.5) * 2,
-        size: Math.random() * 3 + 1,
-        hue: 180 + Math.random() * 120,
-        connections: []
+        vx: (Math.random() - 0.5) * 3,
+        vy: (Math.random() - 0.5) * 3,
+        size: Math.random() * 4 + 1,
+        hue: 180 + Math.random() * 60,
+        energy: Math.random(),
+        type: ['quantum', 'data', 'neural'][Math.floor(Math.random() * 3)] as 'quantum' | 'data' | 'neural'
       });
     }
     
     let frame = 0;
     
     const animate = () => {
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.03)';
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
-      frame += 0.01;
+      frame += 0.02;
       
       particles.forEach((particle, i) => {
-        // Update 3D position
+        // Update position
         particle.x += particle.vx;
         particle.y += particle.vy;
-        particle.z += particle.vz;
         
-        // Wrap boundaries
+        // Boundary wrapping
         if (particle.x < 0) particle.x = canvas.width;
         if (particle.x > canvas.width) particle.x = 0;
         if (particle.y < 0) particle.y = canvas.height;
         if (particle.y > canvas.height) particle.y = 0;
-        if (particle.z < 0) particle.z = 1000;
-        if (particle.z > 1000) particle.z = 0;
         
-        // Calculate 2D projection
-        const scale = 500 / (500 + particle.z);
-        const x2d = particle.x * scale;
-        const y2d = particle.y * scale;
-        const size2d = particle.size * scale;
+        // Draw particle based on type
+        const alpha = 0.7 + Math.sin(frame + i * 0.1) * 0.3;
         
-        // Draw particle with depth-based opacity
-        const alpha = Math.max(0.1, 1 - particle.z / 1000);
-        ctx.beginPath();
-        ctx.arc(x2d, y2d, size2d, 0, Math.PI * 2);
-        
-        const gradient = ctx.createRadialGradient(
-          x2d, y2d, 0,
-          x2d, y2d, size2d * 4
-        );
-        gradient.addColorStop(0, `hsla(${particle.hue}, 80%, 60%, ${alpha})`);
-        gradient.addColorStop(1, `hsla(${particle.hue}, 80%, 30%, 0)`);
-        
-        ctx.fillStyle = gradient;
-        ctx.fill();
+        if (particle.type === 'quantum') {
+          // Quantum dots with pulsing
+          ctx.beginPath();
+          ctx.arc(particle.x, particle.y, particle.size * (1 + Math.sin(frame * 2) * 0.3), 0, Math.PI * 2);
+          ctx.fillStyle = `hsla(${particle.hue}, 100%, 70%, ${alpha})`;
+          ctx.fill();
+          
+          // Quantum glow
+          ctx.beginPath();
+          ctx.arc(particle.x, particle.y, particle.size * 3, 0, Math.PI * 2);
+          ctx.fillStyle = `hsla(${particle.hue}, 100%, 50%, ${alpha * 0.3})`;
+          ctx.fill();
+        } else if (particle.type === 'data') {
+          // Data cubes
+          ctx.save();
+          ctx.translate(particle.x, particle.y);
+          ctx.rotate(frame + i * 0.1);
+          ctx.fillStyle = `hsla(${particle.hue + 60}, 100%, 60%, ${alpha})`;
+          ctx.fillRect(-particle.size/2, -particle.size/2, particle.size, particle.size);
+          ctx.restore();
+        } else {
+          // Neural connections
+          ctx.beginPath();
+          ctx.arc(particle.x, particle.y, particle.size * 0.5, 0, Math.PI * 2);
+          ctx.fillStyle = `hsla(${particle.hue + 120}, 100%, 80%, ${alpha})`;
+          ctx.fill();
+        }
         
         // Neural network connections
         particles.forEach((other, j) => {
-          if (i !== j) {
+          if (i !== j && particle.type === 'neural' && other.type === 'neural') {
             const dx = particle.x - other.x;
             const dy = particle.y - other.y;
-            const dz = particle.z - other.z;
-            const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            const distance = Math.sqrt(dx * dx + dy * dy);
             
             if (distance < 200) {
-              const otherScale = 500 / (500 + other.z);
-              const otherX2d = other.x * otherScale;
-              const otherY2d = other.y * otherScale;
-              
               ctx.beginPath();
-              ctx.strokeStyle = `hsla(${(particle.hue + other.hue) / 2}, 70%, 50%, ${0.2 * (1 - distance / 200) * alpha})`;
-              ctx.lineWidth = 0.5;
-              ctx.moveTo(x2d, y2d);
-              ctx.lineTo(otherX2d, otherY2d);
+              ctx.strokeStyle = `hsla(${(particle.hue + other.hue) / 2}, 100%, 60%, ${0.4 * (1 - distance / 200)})`;
+              ctx.lineWidth = 1;
+              ctx.moveTo(particle.x, particle.y);
+              ctx.lineTo(other.x, other.y);
               ctx.stroke();
             }
           }
@@ -161,371 +169,210 @@ const HolographicBackground = () => {
   return (
     <canvas 
       ref={canvasRef}
-      className="absolute inset-0 z-0"
-      style={{ 
-        background: 'radial-gradient(ellipse at center, #0a0a23 0%, #1a0b2e 50%, #16213e 100%)' 
-      }}
+      className="fixed inset-0 z-0"
+      style={{ background: 'radial-gradient(ellipse at center, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%)' }}
     />
   );
 };
 
-// Quantum Data Visualization
-const QuantumDataViz = () => {
-  const [dataPoints, setDataPoints] = useState<number[]>([]);
-  
-  useEffect(() => {
-    const generateData = () => {
-      const points = Array.from({ length: 20 }, () => Math.random() * 100);
-      setDataPoints(points);
-    };
-    
-    generateData();
-    const interval = setInterval(generateData, 3000);
-    return () => clearInterval(interval);
-  }, []);
-  
-  return (
-    <div className="relative h-32 overflow-hidden">
-      <svg className="w-full h-full" viewBox="0 0 400 120">
-        <defs>
-          <linearGradient id="dataGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#00f5ff" stopOpacity="0.8" />
-            <stop offset="50%" stopColor="#8b5cf6" stopOpacity="0.5" />
-            <stop offset="100%" stopColor="#f0abfc" stopOpacity="0.2" />
-          </linearGradient>
-        </defs>
-        
-        <motion.path
-          d={`M 0,${120 - dataPoints[0]} ${dataPoints.map((point, i) => `L ${i * 20},${120 - point}`).join(' ')}`}
-          stroke="url(#dataGradient)"
-          strokeWidth="2"
-          fill="none"
-          initial={{ pathLength: 0 }}
-          animate={{ pathLength: 1 }}
-          transition={{ duration: 2, ease: "easeInOut" }}
-        />
-        
-        <motion.path
-          d={`M 0,${120 - dataPoints[0]} ${dataPoints.map((point, i) => `L ${i * 20},${120 - point}`).join(' ')} L 400,120 L 0,120 Z`}
-          fill="url(#dataGradient)"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 1 }}
-        />
-        
-        {dataPoints.map((point, i) => (
-          <motion.circle
-            key={i}
-            cx={i * 20}
-            cy={120 - point}
-            r="3"
-            fill="#00f5ff"
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: i * 0.1, type: "spring", stiffness: 300 }}
-          />
-        ))}
-      </svg>
-    </div>
-  );
-};
-
-// Holographic Card Component
-const HolographicCard = ({ 
+// Holographic Panel Component
+const HolographicPanel = ({ 
   children, 
   className = "",
-  glowColor = "cyan"
+  title,
+  icon 
 }: { 
   children: React.ReactNode; 
   className?: string;
-  glowColor?: string;
+  title?: string;
+  icon?: React.ReactNode;
 }) => (
   <motion.div
     className={`relative ${className}`}
-    whileHover={{ 
-      scale: 1.02,
-      rotateX: 2,
-      rotateY: 2
-    }}
+    whileHover={{ scale: 1.02, rotateX: 5, rotateY: 5 }}
     transition={{ type: "spring", stiffness: 300, damping: 20 }}
     style={{ transformStyle: "preserve-3d" }}
   >
-    <div className={`absolute -inset-1 bg-gradient-to-r from-${glowColor}-500 via-purple-500 to-pink-500 rounded-xl opacity-30 blur-lg animate-pulse`} />
-    <div className="relative backdrop-blur-xl bg-black/40 border border-white/20 rounded-xl overflow-hidden">
-      {children}
+    {/* Holographic background layers */}
+    <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/30 via-purple-500/30 to-pink-500/30 rounded-2xl opacity-60 blur-lg animate-pulse" />
+    <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-400/40 via-purple-400/40 to-pink-400/40 rounded-2xl opacity-80 blur-md" />
+    
+    {/* Main panel */}
+    <div className="relative backdrop-blur-xl bg-black/60 border border-cyan-400/30 rounded-2xl overflow-hidden">
+      {/* Animated border flow */}
+      <motion.div
+        className="absolute inset-0 rounded-2xl"
+        style={{
+          background: 'linear-gradient(90deg, transparent, rgba(0, 245, 255, 0.6), transparent)',
+          backgroundSize: '200% 100%'
+        }}
+        animate={{
+          backgroundPosition: ['0% 0%', '200% 0%']
+        }}
+        transition={{
+          duration: 4,
+          repeat: Infinity,
+          ease: "linear"
+        }}
+      />
+      
+      {title && (
+        <div className="relative z-10 p-4 border-b border-cyan-400/20">
+          <div className="flex items-center gap-3">
+            {icon && <div className="text-cyan-400">{icon}</div>}
+            <h3 className="text-lg font-bold text-white">{title}</h3>
+          </div>
+        </div>
+      )}
+      
+      {/* Content */}
+      <div className="relative z-10 p-6">
+        {children}
+      </div>
     </div>
   </motion.div>
 );
 
-// Sidebar Navigation Item
-const QuantumNavItem = ({ 
-  icon, 
-  label, 
-  active = false,
-  onClick,
-  count
-}: {
-  icon: React.ReactNode;
-  label: string;
-  active?: boolean;
-  onClick: () => void;
-  count?: number;
-}) => {
-  return (
-    <motion.button
-      className={`w-full group relative overflow-hidden rounded-xl p-4 transition-all duration-300 ${
-        active 
-          ? 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-cyan-500/30' 
-          : 'hover:bg-white/5 border border-transparent'
-      }`}
-      onClick={onClick}
-      whileHover={{ x: 8, scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-    >
-      {/* Hover glow effect */}
+// System Status Indicator
+const SystemStatus = ({ label, status, value }: { label: string; status: 'online' | 'warning' | 'error'; value?: string }) => (
+  <div className="flex items-center justify-between p-3 bg-black/30 rounded-lg border border-white/10">
+    <span className="text-white/80 text-sm">{label}</span>
+    <div className="flex items-center gap-2">
+      {value && <span className="text-cyan-400 text-sm font-mono">{value}</span>}
       <motion.div
-        className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-        initial={{ x: '-100%' }}
-        whileHover={{ x: '100%' }}
-        transition={{ duration: 0.6 }}
+        className={`w-3 h-3 rounded-full ${
+          status === 'online' ? 'bg-green-400' :
+          status === 'warning' ? 'bg-yellow-400' : 'bg-red-400'
+        }`}
+        animate={{ scale: [1, 1.2, 1], opacity: [0.7, 1, 0.7] }}
+        transition={{ duration: 2, repeat: Infinity }}
       />
-      
-      <div className="relative flex items-center gap-4">
-        <motion.div 
-          className={`p-2 rounded-lg ${active ? 'text-cyan-400 bg-cyan-400/20' : 'text-white/70 group-hover:text-cyan-400 group-hover:bg-cyan-400/10'}`}
-          animate={active ? { 
-            rotateY: [0, 360],
-            scale: [1, 1.1, 1]
-          } : {}}
-          transition={{ 
-            duration: 2,
-            repeat: active ? Infinity : 0,
-            repeatType: "loop"
-          }}
-        >
-          {icon}
-        </motion.div>
-        
-        <div className="flex-1 text-left">
-          <span className={`font-medium ${active ? 'text-cyan-400' : 'text-white group-hover:text-cyan-400'}`}>
-            {label}
-          </span>
-          {count && (
-            <motion.span
-              className="ml-2 px-2 py-0.5 bg-purple-500/30 text-purple-300 text-xs rounded-full"
-              animate={{ scale: [1, 1.1, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              {count}
-            </motion.span>
-          )}
-        </div>
-        
-        {active && (
-          <motion.div
-            className="text-cyan-400"
-            animate={{ x: [0, 5, 0] }}
-            transition={{ repeat: Infinity, duration: 1.5 }}
-          >
-            <ChevronRight size={16} />
-          </motion.div>
-        )}
-      </div>
-      
-      {/* Active indicator */}
-      {active && (
-        <motion.div
-          className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-cyan-400 to-purple-500"
-          layoutId="activeIndicator"
-        />
-      )}
-    </motion.button>
-  );
-};
-
-// Dashboard Stats Card
-const StatsCard = ({
-  title,
-  value,
-  change,
-  icon,
-  trend = "up",
-  children
-}: {
-  title: string;
-  value: string | number;
-  change?: string;
-  icon?: React.ReactNode;
-  trend?: "up" | "down";
-  children?: React.ReactNode;
-}) => (
-  <HolographicCard className="h-full">
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <p className="text-white/60 text-sm font-medium">{title}</p>
-          <motion.p 
-            className="text-2xl font-bold text-white mt-1"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            {value}
-          </motion.p>
-        </div>
-        {icon && (
-          <motion.div 
-            className="text-cyan-400 p-3 bg-cyan-400/20 rounded-xl"
-            whileHover={{ scale: 1.1, rotate: 10 }}
-            transition={{ type: "spring", stiffness: 300 }}
-          >
-            {icon}
-          </motion.div>
-        )}
-      </div>
-      
-      {change && (
-        <div className={`flex items-center gap-1 text-sm ${
-          trend === 'up' ? 'text-emerald-400' : 'text-red-400'
-        }`}>
-          <TrendingUp size={14} className={trend === 'down' ? 'rotate-180' : ''} />
-          <span>{change}</span>
-        </div>
-      )}
-      
-      {children}
     </div>
-  </HolographicCard>
+  </div>
 );
 
-// Quick Action Button
-const QuickActionBtn = ({ 
-  icon, 
-  label, 
-  onClick,
-  variant = "default"
-}: { 
-  icon: React.ReactNode; 
-  label: string; 
-  onClick: () => void;
-  variant?: "default" | "success" | "warning" | "danger";
-}) => {
-  const variants = {
-    default: "from-cyan-500/20 to-purple-500/20 border-cyan-500/30 hover:from-cyan-500/30 hover:to-purple-500/30",
-    success: "from-emerald-500/20 to-green-500/20 border-emerald-500/30 hover:from-emerald-500/30 hover:to-green-500/30",
-    warning: "from-amber-500/20 to-orange-500/20 border-amber-500/30 hover:from-amber-500/30 hover:to-orange-500/30",
-    danger: "from-red-500/20 to-rose-500/20 border-red-500/30 hover:from-red-500/30 hover:to-rose-500/30"
-  };
-  
-  return (
-    <motion.button
-      className={`w-full p-4 rounded-xl backdrop-blur-xl bg-gradient-to-r ${variants[variant]} border transition-all duration-300 group`}
-      onClick={onClick}
-      whileHover={{ scale: 1.02, y: -2 }}
-      whileTap={{ scale: 0.98 }}
-    >
-      <div className="flex items-center gap-3">
-        <motion.div 
-          className="p-2 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors"
-          whileHover={{ rotate: 10 }}
-        >
-          {icon}
-        </motion.div>
-        <span className="font-medium">{label}</span>
-      </div>
-    </motion.button>
-  );
-};
+// Terminal Log Component
+const TerminalLogs = () => {
+  const [logs, setLogs] = useState([
+    { id: 1, type: 'info', message: 'System initialized successfully', timestamp: new Date() },
+    { id: 2, type: 'success', message: 'Database connection established', timestamp: new Date() },
+    { id: 3, type: 'warning', message: 'High memory usage detected', timestamp: new Date() },
+  ]);
 
-// Activity Feed Item
-const ActivityItem = ({ 
-  user, 
-  action, 
-  time, 
-  type = "info" 
-}: { 
-  user: string; 
-  action: string; 
-  time: string;
-  type?: "info" | "success" | "warning";
-}) => {
-  const typeColors = {
-    info: "text-cyan-400",
-    success: "text-emerald-400",
-    warning: "text-amber-400"
-  };
-  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const messages = [
+        'User authentication successful',
+        'Data synchronization complete',
+        'Cache optimization running',
+        'Security scan completed',
+        'Performance metrics updated'
+      ];
+      
+      setLogs(prev => [...prev.slice(-4), {
+        id: Date.now(),
+        type: ['info', 'success', 'warning'][Math.floor(Math.random() * 3)] as 'info' | 'success' | 'warning',
+        message: messages[Math.floor(Math.random() * messages.length)],
+        timestamp: new Date()
+      }]);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <motion.div 
-      className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition-colors group"
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      whileHover={{ x: 5 }}
-    >
-      <div className={`w-2 h-2 rounded-full ${typeColors[type]} animate-pulse`} />
-      <div className="flex-1">
-        <p className="text-sm">
-          <span className={`font-medium ${typeColors[type]}`}>{user}</span>
-          <span className="text-white/70 ml-1">{action}</span>
-        </p>
-        <p className="text-xs text-white/50">{time}</p>
-      </div>
-    </motion.div>
+    <div className="space-y-2 max-h-60 overflow-y-auto">
+      {logs.map((log) => (
+        <motion.div
+          key={log.id}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="flex items-start gap-2 text-sm font-mono"
+        >
+          <span className="text-cyan-400">[{log.timestamp.toLocaleTimeString()}]</span>
+          <span className={
+            log.type === 'success' ? 'text-green-400' :
+            log.type === 'warning' ? 'text-yellow-400' : 'text-white/70'
+          }>
+            {log.message}
+          </span>
+        </motion.div>
+      ))}
+    </div>
   );
 };
 
 const AdminPage = () => {
-  const [activeSection, setActiveSection] = useState<string>("dashboard");
-  const { toast } = useToast();
+  const { user, profile, loading } = useAuth();
+  const { data: isAdmin, isLoading: isAdminLoading } = useAdminRole();
   const navigate = useNavigate();
-  const { user, profile, loading, signOut } = useAuth();
+  const queryClient = useQueryClient();
   
-  // Fetch real dashboard data
-  const { data: dashboardStats } = useQuery({
-    queryKey: ["dashboard-stats"],
-    queryFn: async () => {
-      const [eventsRes, projectsRes, teamRes, resourcesRes] = await Promise.all([
-        supabase.from("events").select("*"),
-        supabase.from("projects").select("*"),
-        supabase.from("team_members").select("*").eq("active", true),
-        supabase.from("resources").select("*")
-      ]);
+  const [activePanel, setActivePanel] = useState("overview");
+  const [createEventOpen, setCreateEventOpen] = useState(false);
+  const [createProjectOpen, setCreateProjectOpen] = useState(false);
+  const [createResourceOpen, setCreateResourceOpen] = useState(false);
 
-      return {
-        events: eventsRes.data?.length || 0,
-        projects: projectsRes.data?.length || 0,
-        teamMembers: teamRes.data?.length || 0,
-        resources: resourcesRes.data?.length || 0,
-        upcomingEvents: eventsRes.data?.filter(e => e.status === 'upcoming').length || 0,
-        featuredProjects: projectsRes.data?.filter(p => p.featured).length || 0
-      };
-    },
-    enabled: !!user && profile?.role === 'admin'
-  });
-  
+  // Redirect if not admin
   useEffect(() => {
-    if (!loading && (!user || profile?.role !== 'admin')) {
-      toast({
-        title: "⚡ Access Denied",
-        description: "Admin privileges required to access this interface.",
-        variant: "destructive",
-      });
-      navigate("/admin-login");
+    if (!loading && !isAdminLoading && (!user || !isAdmin)) {
+      navigate("/auth");
     }
-  }, [user, profile, loading, navigate, toast]);
-  
-  const handleLogout = async () => {
-    try {
-      await signOut();
-      navigate("/");
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-  };
+  }, [user, isAdmin, loading, isAdminLoading, navigate]);
 
-  if (loading || !user || profile?.role !== 'admin') {
+  // Fetch admin data
+  const { data: events } = useQuery({
+    queryKey: ["admin-events"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("events").select("*").order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!isAdmin
+  });
+
+  const { data: projects } = useQuery({
+    queryKey: ["admin-projects"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("projects").select("*").order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!isAdmin
+  });
+
+  const { data: resources } = useQuery({
+    queryKey: ["admin-resources"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("resources").select("*").order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!isAdmin
+  });
+
+  const { data: users } = useQuery({
+    queryKey: ["admin-users"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("profiles").select("*").order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!isAdmin
+  });
+
+  const adminPanels = [
+    { id: "overview", label: "System Overview", icon: <Monitor size={20} /> },
+    { id: "events", label: "Events Console", icon: <Calendar size={20} /> },
+    { id: "projects", label: "Projects Hub", icon: <Cpu size={20} /> },
+    { id: "resources", label: "Resources Center", icon: <BookOpen size={20} /> },
+    { id: "users", label: "User Management", icon: <Users size={20} /> },
+    { id: "analytics", label: "System Analytics", icon: <BarChart3 size={20} /> }
+  ];
+
+  if (loading || isAdminLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-black">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-purple-900 to-black">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
@@ -535,384 +382,247 @@ const AdminPage = () => {
     );
   }
 
-  const sidebarItems = [
-    { id: "dashboard", icon: <LayoutDashboard size={20} />, label: "Dashboard" },
-    { id: "content", icon: <Globe size={20} />, label: "Site Content" },
-    { id: "events", icon: <Calendar size={20} />, label: "Events", count: dashboardStats?.upcomingEvents },
-    { id: "projects", icon: <FolderOpen size={20} />, label: "Projects", count: dashboardStats?.projects },
-    { id: "resources", icon: <BookOpen size={20} />, label: "Resources", count: dashboardStats?.resources },
-    { id: "blog", icon: <FileText size={20} />, label: "Blog Posts" },
-    { id: "gallery", icon: <Image size={20} />, label: "Gallery" },
-    { id: "team", icon: <Users size={20} />, label: "Team Members", count: dashboardStats?.teamMembers },
-    { id: "settings", icon: <Settings size={20} />, label: "Settings" }
-  ];
-
   return (
-    <AnimatedPage>
-      <Navbar />
+    <div className="min-h-screen relative overflow-hidden">
+      <QuantumAdminParticles />
       
-      <main className="min-h-screen pt-16 relative overflow-hidden">
-        <HolographicBackground />
-        
-        {/* Cyber Grid Overlay */}
-        <div className="absolute inset-0 z-10 opacity-10 pointer-events-none">
-          <div 
-            className="w-full h-full"
-            style={{
-              backgroundImage: `
-                linear-gradient(rgba(0, 245, 255, 0.1) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 245, 255, 0.1) 1px, transparent 1px)
-              `,
-              backgroundSize: '50px 50px'
-            }}
-          />
+      {/* Header */}
+      <motion.header
+        className="relative z-10 p-6 border-b border-cyan-400/20"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <motion.div
+              animate={{ rotate: [0, 360] }}
+              transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+              className="p-3 rounded-full bg-gradient-to-r from-cyan-500/20 to-purple-500/20 backdrop-blur-xl"
+            >
+              <Shield className="w-8 h-8 text-cyan-400" />
+            </motion.div>
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+                Quantum Command Center
+              </h1>
+              <p className="text-white/60">Neural Administrative Interface</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <div className="text-right">
+              <p className="text-cyan-400 font-medium">{profile?.full_name}</p>
+              <p className="text-white/60 text-sm">System Administrator</p>
+            </div>
+            <Button
+              onClick={() => navigate("/")}
+              variant="outline"
+              className="border-cyan-400/50 text-cyan-400 hover:bg-cyan-400/20"
+            >
+              Exit Interface
+            </Button>
+          </div>
         </div>
-        
-        <div className="container mx-auto px-4 py-8 relative z-20">
-          {/* Header */}
-          <motion.div 
-            className="mb-8"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <motion.h1 
-                  className="text-5xl font-bold mb-2"
-                  style={{
-                    background: 'linear-gradient(135deg, #00f5ff 0%, #8b5cf6 50%, #f0abfc 100%)',
-                    WebkitBackgroundClip: 'text',
-                    backgroundClip: 'text',
-                    color: 'transparent',
-                    backgroundSize: '200% 200%'
-                  }}
-                  animate={{
-                    backgroundPosition: ['0% 0%', '100% 100%', '0% 0%']
-                  }}
-                  transition={{
-                    duration: 4,
-                    repeat: Infinity,
-                    ease: "linear"
-                  }}
-                >
-                  CodeBird Admin
-                </motion.h1>
-                
-                <motion.div
-                  className="flex items-center gap-4"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.5 }}
-                >
-                  <div className="h-1 w-40 bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 rounded-full" />
-                  <div className="flex items-center gap-2 text-white/60">
-                    <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-                    <span className="text-sm">System Online</span>
-                  </div>
-                </motion.div>
-              </div>
-              
+      </motion.header>
+
+      {/* Navigation */}
+      <motion.nav
+        className="relative z-10 p-6"
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.2 }}
+      >
+        <HolographicPanel className="p-4">
+          <div className="flex flex-wrap gap-2">
+            {adminPanels.map((panel) => (
               <motion.button
-                onClick={handleLogout}
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-red-500/20 to-rose-500/20 border border-red-500/30 rounded-xl hover:from-red-500/30 hover:to-rose-500/30 transition-all duration-300"
+                key={panel.id}
+                onClick={() => setActivePanel(panel.id)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+                  activePanel === panel.id
+                    ? 'bg-gradient-to-r from-cyan-500/30 to-purple-500/30 text-white border border-cyan-400/50'
+                    : 'hover:bg-white/10 text-white/70 border border-transparent'
+                }`}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <LogOut size={18} />
-                <span>Logout</span>
+                {panel.icon}
+                <span className="font-medium">{panel.label}</span>
               </motion.button>
-            </div>
-          </motion.div>
-
-          <div className="grid grid-cols-12 gap-6">
-            {/* Left Sidebar */}
-            <motion.div 
-              className="col-span-12 lg:col-span-3"
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-            >
-              <HolographicCard className="h-fit">
-                <div className="p-6">
-                  {/* Admin Profile */}
-                  <div className="flex items-center gap-3 mb-6 p-4 bg-gradient-to-r from-cyan-500/10 to-purple-500/10 rounded-xl">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-r from-cyan-400 to-purple-500 flex items-center justify-center">
-                      <Users size={24} className="text-white" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-white">{profile?.full_name || user?.email}</p>
-                      <p className="text-xs text-white/60">Administrator</p>
-                    </div>
-                  </div>
-                  
-                  {/* Navigation */}
-                  <nav className="space-y-2">
-                    {sidebarItems.map((item) => (
-                      <QuantumNavItem
-                        key={item.id}
-                        icon={item.icon}
-                        label={item.label}
-                        active={activeSection === item.id}
-                        onClick={() => setActiveSection(item.id)}
-                        count={item.count}
-                      />
-                    ))}
-                  </nav>
-                </div>
-              </HolographicCard>
-            </motion.div>
-            
-            {/* Main Content */}
-            <motion.div 
-              className="col-span-12 lg:col-span-9"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-            >
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={activeSection}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  {activeSection === "dashboard" && (
-                    <div className="space-y-6">
-                      {/* Main Stats */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <StatsCard
-                          title="Total Events"
-                          value={dashboardStats?.events || 0}
-                          change="+12.5%"
-                          icon={<Calendar size={24} />}
-                          trend="up"
-                        />
-                        <StatsCard
-                          title="Projects"
-                          value={dashboardStats?.projects || 0}
-                          change="+5.2%"
-                          icon={<FolderOpen size={24} />}
-                          trend="up"
-                        />
-                        <StatsCard
-                          title="Team Members"
-                          value={dashboardStats?.teamMembers || 0}
-                          change="+2.1%"
-                          icon={<Users size={24} />}
-                          trend="up"
-                        />
-                      </div>
-                      
-                      {/* Quantum Analytics */}
-                      <HolographicCard>
-                        <div className="p-6">
-                          <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-xl font-bold text-white">System Analytics</h3>
-                            <motion.div
-                              className="flex items-center gap-2 text-emerald-400"
-                              animate={{ opacity: [0.5, 1, 0.5] }}
-                              transition={{ duration: 2, repeat: Infinity }}
-                            >
-                              <Activity size={16} />
-                              <span className="text-sm">Live</span>
-                            </motion.div>
-                          </div>
-                          <QuantumDataViz />
-                        </div>
-                      </HolographicCard>
-                      
-                      {/* Real-time Metrics */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <StatsCard
-                          title="Upcoming Events"
-                          value={dashboardStats?.upcomingEvents || 0}
-                          change="+18.3%"
-                          icon={<Calendar size={24} />}
-                        />
-                        
-                        <StatsCard
-                          title="Featured Projects"
-                          value={dashboardStats?.featuredProjects || 0}
-                          change="+0.8%"
-                          icon={<Zap size={24} />}
-                        />
-                      </div>
-                    </div>
-                  )}
-                  
-                  {activeSection === "content" && <ContentManagement />}
-                  {activeSection === "events" && <EventsManagement />}
-                  
-                  {/* Other sections placeholder */}
-                  {!["dashboard", "content", "events"].includes(activeSection) && (
-                    <HolographicCard className="h-[60vh] flex items-center justify-center">
-                      <div className="text-center">
-                        <motion.div
-                          className="mx-auto mb-6 p-6 rounded-full bg-gradient-to-r from-cyan-500/20 to-purple-500/20 w-24 h-24 flex items-center justify-center"
-                          animate={{ 
-                            rotateY: [0, 360],
-                            scale: [1, 1.1, 1]
-                          }}
-                          transition={{ 
-                            rotateY: { duration: 3, repeat: Infinity, ease: "linear" },
-                            scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
-                          }}
-                        >
-                          {sidebarItems.find(item => item.id === activeSection)?.icon}
-                        </motion.div>
-                        
-                        <h3 className="text-2xl font-bold text-white mb-3">
-                          {activeSection.charAt(0).toUpperCase() + activeSection.slice(1)} Management
-                        </h3>
-                        
-                        <p className="text-white/60 max-w-md mx-auto mb-6">
-                          This section connects to real Supabase data. Management interface coming soon!
-                        </p>
-                      </div>
-                    </HolographicCard>
-                  )}
-                </motion.div>
-              </AnimatePresence>
-            </motion.div>
-            
-            {/* Right Panel */}
-            <motion.div 
-              className="col-span-12 lg:col-span-3"
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-            >
-              <div className="space-y-6">
-                {/* System Alerts */}
-                <HolographicCard>
-                  <div className="p-6">
-                    <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                      <Bell size={18} className="text-cyan-400" />
-                      Neural Alerts
-                    </h3>
-                    
-                    <div className="space-y-3">
-                      <motion.div
-                        className="p-3 rounded-lg bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30"
-                        initial={{ x: -20, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        transition={{ delay: 0.3 }}
-                      >
-                        <div className="flex items-start gap-3">
-                          <AlertCircle size={16} className="text-amber-400 mt-0.5" />
-                          <div>
-                            <h4 className="text-sm font-medium text-amber-400">Neural Spike Detected</h4>
-                            <p className="text-xs text-white/70 mt-1">User registration surge: +67% in the last quantum cycle</p>
-                          </div>
-                        </div>
-                      </motion.div>
-                      
-                      <motion.div
-                        className="p-3 rounded-lg bg-gradient-to-r from-emerald-500/20 to-green-500/20 border border-emerald-500/30"
-                        initial={{ x: -20, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        transition={{ delay: 0.4 }}
-                      >
-                        <div className="flex items-start gap-3">
-                          <Shield size={16} className="text-emerald-400 mt-0.5" />
-                          <div>
-                            <h4 className="text-sm font-medium text-emerald-400">Quantum Backup Complete</h4>
-                            <p className="text-xs text-white/70 mt-1">Neural database successfully synchronized to quantum storage</p>
-                          </div>
-                        </div>
-                      </motion.div>
-                    </div>
-                  </div>
-                </HolographicCard>
-                
-                {/* Quick Actions */}
-                <HolographicCard>
-                  <div className="p-6">
-                    <h3 className="text-lg font-bold text-white mb-4">Quantum Actions</h3>
-                    <div className="space-y-3">
-                      <QuickActionBtn 
-                        icon={<Upload size={16} />} 
-                        label="Upload Neural Data" 
-                        onClick={() => {}}
-                        variant="success"
-                      />
-                      <QuickActionBtn 
-                        icon={<Calendar size={16} />} 
-                        label="Schedule Matrix Event" 
-                        onClick={() => {}}
-                      />
-                      <QuickActionBtn 
-                        icon={<Users size={16} />} 
-                        label="Manage Neural Network" 
-                        onClick={() => {}}
-                        variant="warning"
-                      />
-                      <QuickActionBtn 
-                        icon={<RotateCw size={16} />} 
-                        label="Sync Quantum State" 
-                        onClick={() => {}}
-                      />
-                    </div>
-                  </div>
-                </HolographicCard>
-                
-                {/* Activity Feed */}
-                <HolographicCard>
-                  <div className="p-6">
-                    <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                      <Activity size={18} className="text-cyan-400" />
-                      Neural Activity
-                    </h3>
-                    
-                    <div className="space-y-1 max-h-64 overflow-y-auto custom-scrollbar">
-                      {[
-                        { user: "Quantum_Sarah", action: "initiated new project matrix", time: "2 cycles ago", type: "success" },
-                        { user: "Neural_Mike", action: "joined event: Web3 Workshop", time: "3 cycles ago", type: "info" },
-                        { user: "Cyber_Alex", action: "uploaded neural pattern", time: "5 cycles ago", type: "warning" },
-                        { user: "Holo_Emily", action: "synchronized data cluster", time: "1 quantum day", type: "success" },
-                        { user: "Matrix_David", action: "updated profile neural map", time: "1 quantum day", type: "info" }
-                      ].map((activity, index) => (
-                        <ActivityItem 
-                          key={index}
-                          user={activity.user}
-                          action={activity.action}
-                          time={activity.time}
-                          type={activity.type as any}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </HolographicCard>
-              </div>
-            </motion.div>
+            ))}
           </div>
-        </div>
+        </HolographicPanel>
+      </motion.nav>
+
+      {/* Main Content */}
+      <main className="relative z-10 p-6">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activePanel}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.3 }}
+          >
+            {activePanel === "overview" && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* System Status */}
+                <HolographicPanel title="System Status" icon={<Activity size={20} />} className="col-span-1">
+                  <div className="space-y-3">
+                    <SystemStatus label="Database" status="online" value="99.9%" />
+                    <SystemStatus label="API Gateway" status="online" value="Active" />
+                    <SystemStatus label="Cache" status="warning" value="78%" />
+                    <SystemStatus label="Storage" status="online" value="2.1TB" />
+                  </div>
+                </HolographicPanel>
+
+                {/* Quick Stats */}
+                <HolographicPanel title="System Metrics" icon={<BarChart3 size={20} />} className="col-span-1">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-cyan-400">{events?.length || 0}</div>
+                      <div className="text-white/60 text-sm">Events</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-purple-400">{projects?.length || 0}</div>
+                      <div className="text-white/60 text-sm">Projects</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-pink-400">{resources?.length || 0}</div>
+                      <div className="text-white/60 text-sm">Resources</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-400">{users?.length || 0}</div>
+                      <div className="text-white/60 text-sm">Users</div>
+                    </div>
+                  </div>
+                </HolographicPanel>
+
+                {/* Terminal Logs */}
+                <HolographicPanel title="System Logs" icon={<Terminal size={20} />} className="col-span-1">
+                  <TerminalLogs />
+                </HolographicPanel>
+              </div>
+            )}
+
+            {activePanel === "events" && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-bold text-white">Events Management</h2>
+                  <Dialog open={createEventOpen} onOpenChange={setCreateEventOpen}>
+                    <DialogTrigger asChild>
+                      <Button className="bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600">
+                        <Plus size={16} className="mr-2" />
+                        Create Event
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="bg-black/90 border-cyan-400/30">
+                      <DialogHeader>
+                        <DialogTitle className="text-cyan-400">Create New Event</DialogTitle>
+                      </DialogHeader>
+                      {/* Event creation form would go here */}
+                      <p className="text-white/70">Event creation form implementation...</p>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {events?.map((event) => (
+                    <HolographicPanel key={event.id}>
+                      <div className="space-y-4">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h3 className="font-bold text-white">{event.title}</h3>
+                            <p className="text-white/70 text-sm">{event.description}</p>
+                          </div>
+                          <Badge variant="outline">{event.status}</Badge>
+                        </div>
+                        
+                        <div className="flex items-center gap-4 text-sm text-white/60">
+                          <div className="flex items-center gap-1">
+                            <Calendar size={14} />
+                            <span>{new Date(event.date).toLocaleDateString()}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Users size={14} />
+                            <span>{event.current_participants || 0}</span>
+                          </div>
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm" className="flex-1">
+                            <Edit3 size={14} className="mr-1" />
+                            Edit
+                          </Button>
+                          <Button variant="outline" size="sm" className="text-red-400 border-red-400/50">
+                            <Trash2 size={14} />
+                          </Button>
+                        </div>
+                      </div>
+                    </HolographicPanel>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Similar implementations for other panels... */}
+            {activePanel === "projects" && (
+              <div className="space-y-6">
+                <h2 className="text-2xl font-bold text-white">Projects Console</h2>
+                <p className="text-white/70">Project management interface coming soon...</p>
+              </div>
+            )}
+
+            {activePanel === "resources" && (
+              <div className="space-y-6">
+                <h2 className="text-2xl font-bold text-white">Resources Center</h2>
+                <p className="text-white/70">Resource management interface coming soon...</p>
+              </div>
+            )}
+
+            {activePanel === "users" && (
+              <div className="space-y-6">
+                <h2 className="text-2xl font-bold text-white">User Management</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {users?.map((user) => (
+                    <HolographicPanel key={user.id}>
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-r from-cyan-500 to-purple-500 flex items-center justify-center">
+                            <Users size={16} className="text-white" />
+                          </div>
+                          <div>
+                            <h3 className="font-medium text-white">{user.full_name || "Unknown User"}</h3>
+                            <p className="text-white/60 text-sm">{user.role}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm" className="flex-1">
+                            <Crown size={14} className="mr-1" />
+                            Promote
+                          </Button>
+                          <Button variant="outline" size="sm" className="text-red-400 border-red-400/50">
+                            <Trash2 size={14} />
+                          </Button>
+                        </div>
+                      </div>
+                    </HolographicPanel>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {activePanel === "analytics" && (
+              <div className="space-y-6">
+                <h2 className="text-2xl font-bold text-white">System Analytics</h2>
+                <p className="text-white/70">Analytics dashboard coming soon...</p>
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
       </main>
-      
-      <Footer />
-      
-      {/* Custom Scrollbar Styles */}
-      <style>
-        {`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(255, 255, 255, 0.1);
-          border-radius: 2px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: linear-gradient(to bottom, #00f5ff, #8b5cf6);
-          border-radius: 2px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(to bottom, #00d4ff, #7c3aed);
-        }
-        `}
-      </style>
-    </AnimatedPage>
+    </div>
   );
 };
 

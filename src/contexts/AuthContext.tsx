@@ -27,19 +27,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, currentSession) => {
+      async (event, currentSession) => {
         console.log("Auth state changed:", event, currentSession?.user?.id);
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         
-        // Fetch user profile on login
-        if (currentSession?.user && event === 'SIGNED_IN') {
-          setTimeout(() => fetchProfile(currentSession.user.id), 0);
+        // Fetch user profile and handle redirects on login
+        if (currentSession?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+          try {
+            await fetchProfile(currentSession.user.id);
+            
+            // Only redirect on successful sign in, not token refresh
+            if (event === 'SIGNED_IN') {
+              // Check if user is admin and redirect accordingly
+              const { data: profileData } = await supabase
+                .from("profiles")
+                .select("role")
+                .eq("id", currentSession.user.id)
+                .single();
+              
+              if (profileData?.role === 'admin') {
+                navigate("/admin");
+              } else {
+                navigate("/dashboard");
+              }
+            }
+          } catch (error) {
+            console.error("Error during auth state change:", error);
+          }
         }
         
         if (event === 'SIGNED_OUT') {
           setProfile(null);
+          navigate("/");
         }
+        
+        setLoading(false);
       }
     );
 
@@ -58,7 +81,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [navigate]);
 
   const fetchProfile = async (userId: string) => {
     try {
@@ -70,7 +93,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
 
       if (error) {
-        console.error("Error fetching profile:", error);
+        // If profile doesn't exist, create one
+        if (error.code === 'PGRST116') {
+          console.log("Profile not found, creating new profile");
+          const { data: newProfile, error: createError } = await supabase
+            .from("profiles")
+            .insert({
+              id: userId,
+              full_name: "New User",
+              role: 'user'
+            })
+            .select()
+            .single();
+          
+          if (createError) {
+            console.error("Error creating profile:", createError);
+          } else {
+            console.log("New profile created:", newProfile);
+            setProfile(newProfile);
+          }
+        } else {
+          console.error("Error fetching profile:", error);
+        }
       } else {
         console.log("Profile fetched:", data);
         setProfile(data);
@@ -82,6 +126,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     try {
+      setLoading(true);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -93,15 +138,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       toast.success("Successfully signed in!");
-      navigate("/");
     } catch (error) {
       console.error("Sign in error:", error);
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
   const signUp = async (email: string, password: string, userData?: any) => {
     try {
+      setLoading(true);
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -119,6 +166,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error("Sign up error:", error);
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -130,7 +179,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw error;
       }
       toast.success("Successfully signed out!");
-      navigate("/");
     } catch (error) {
       console.error("Sign out error:", error);
       throw error;

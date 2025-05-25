@@ -27,7 +27,10 @@ import {
   X,
   Zap,
   Cpu,
-  Activity
+  Activity,
+  Github,
+  ExternalLink,
+  Download
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -244,7 +247,7 @@ const AIAssistant = () => {
   );
 };
 
-// Event Card Component
+// Event Card Component with real data integration
 const EventCard = ({ event, isRegistered, onRegister, onUnregister }: any) => (
   <GlassCard className="p-6">
     <div className="space-y-4">
@@ -269,6 +272,10 @@ const EventCard = ({ event, isRegistered, onRegister, onUnregister }: any) => (
             <span>{event.location}</span>
           </div>
         )}
+        <div className="flex items-center gap-1">
+          <Clock size={14} />
+          <span>{new Date(event.date).toLocaleTimeString()}</span>
+        </div>
       </div>
       
       <div className="flex items-center justify-between pt-2">
@@ -292,7 +299,84 @@ const EventCard = ({ event, isRegistered, onRegister, onUnregister }: any) => (
   </GlassCard>
 );
 
-// Resource Card Component  
+// Project Card Component with real data integration
+const ProjectCard = ({ project, isSaved, onToggleSave }: any) => (
+  <GlassCard className="p-6">
+    <div className="space-y-4">
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <h3 className="font-bold text-white">{project.title}</h3>
+          <p className="text-white/70 text-sm mt-1">{project.description}</p>
+        </div>
+        <Button
+          onClick={() => onToggleSave(project.id)}
+          variant="ghost"
+          size="sm"
+          className="text-white/60 hover:text-white"
+        >
+          <Heart size={16} className={isSaved ? "fill-red-500 text-red-500" : ""} />
+        </Button>
+      </div>
+      
+      <div className="flex items-center gap-2">
+        <Badge variant="outline" className="text-xs">
+          {project.category}
+        </Badge>
+        {project.featured && (
+          <Badge variant="default" className="text-xs bg-gradient-to-r from-purple-500 to-cyan-500">
+            Featured
+          </Badge>
+        )}
+      </div>
+
+      {project.technology_stack && (
+        <div className="flex flex-wrap gap-1">
+          {project.technology_stack.slice(0, 3).map((tech: string, index: number) => (
+            <Badge key={index} variant="outline" className="text-xs">
+              {tech}
+            </Badge>
+          ))}
+          {project.technology_stack.length > 3 && (
+            <Badge variant="outline" className="text-xs">
+              +{project.technology_stack.length - 3}
+            </Badge>
+          )}
+        </div>
+      )}
+      
+      <div className="flex gap-2">
+        {project.github_url && (
+          <Button 
+            asChild
+            variant="outline" 
+            size="sm"
+            className="flex-1"
+          >
+            <a href={project.github_url} target="_blank" rel="noopener noreferrer">
+              <Github size={14} className="mr-1" />
+              Code
+            </a>
+          </Button>
+        )}
+        {project.demo_url && (
+          <Button 
+            asChild
+            variant="outline" 
+            size="sm"
+            className="flex-1"
+          >
+            <a href={project.demo_url} target="_blank" rel="noopener noreferrer">
+              <ExternalLink size={14} className="mr-1" />
+              Demo
+            </a>
+          </Button>
+        )}
+      </div>
+    </div>
+  </GlassCard>
+);
+
+// Resource Card Component with real data integration
 const ResourceCard = ({ resource, isSaved, onToggleSave }: any) => (
   <GlassCard className="p-6">
     <div className="space-y-4">
@@ -318,7 +402,27 @@ const ResourceCard = ({ resource, isSaved, onToggleSave }: any) => (
         <Badge variant="outline" className="text-xs">
           {resource.difficulty}
         </Badge>
+        {resource.featured && (
+          <Badge variant="default" className="text-xs bg-gradient-to-r from-purple-500 to-cyan-500">
+            Featured
+          </Badge>
+        )}
       </div>
+
+      {resource.tags && (
+        <div className="flex flex-wrap gap-1">
+          {resource.tags.slice(0, 3).map((tag: string, index: number) => (
+            <Badge key={index} variant="outline" className="text-xs">
+              {tag}
+            </Badge>
+          ))}
+          {resource.tags.length > 3 && (
+            <Badge variant="outline" className="text-xs">
+              +{resource.tags.length - 3}
+            </Badge>
+          )}
+        </div>
+      )}
       
       {resource.url && (
         <Button 
@@ -328,7 +432,8 @@ const ResourceCard = ({ resource, isSaved, onToggleSave }: any) => (
           className="w-full"
         >
           <a href={resource.url} target="_blank" rel="noopener noreferrer">
-            View Resource
+            <Download size={14} className="mr-1" />
+            Access Resource
           </a>
         </Button>
       )}
@@ -344,7 +449,7 @@ const UserDashboard = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  // Fetch user events
+  // Fetch user events with real data
   const { data: events } = useQuery({
     queryKey: ["events"],
     queryFn: async () => {
@@ -358,7 +463,21 @@ const UserDashboard = () => {
     enabled: !!user
   });
 
-  // Fetch resources
+  // Fetch projects with real data
+  const { data: projects } = useQuery({
+    queryKey: ["projects"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user
+  });
+
+  // Fetch resources with real data
   const { data: resources } = useQuery({
     queryKey: ["resources"],
     queryFn: async () => {
@@ -372,6 +491,28 @@ const UserDashboard = () => {
     enabled: !!user
   });
 
+  // Fetch user's saved items
+  const { data: userSavedItems } = useQuery({
+    queryKey: ["user-saved-items", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from("user_saved_items")
+        .select("*")
+        .eq("user_id", user.id);
+      if (error) throw error;
+      return data.map(item => item.content_id);
+    },
+    enabled: !!user
+  });
+
+  // Update saved items when data loads
+  useEffect(() => {
+    if (userSavedItems) {
+      setSavedItems(userSavedItems);
+    }
+  }, [userSavedItems]);
+
   // Redirect if not authenticated
   useEffect(() => {
     if (!loading && !user) {
@@ -380,29 +521,78 @@ const UserDashboard = () => {
   }, [user, loading, navigate]);
 
   const tabs = [
-    { id: "events", label: "My Events", icon: <Calendar size={18} /> },
-    { id: "saved", label: "Saved Items", icon: <Heart size={18} /> },
-    { id: "resources", label: "My Resources", icon: <BookOpen size={18} /> },
-    { id: "reminders", label: "Reminders", icon: <Bell size={18} /> }
+    { id: "events", label: "Events", icon: <Calendar size={18} /> },
+    { id: "projects", label: "Projects", icon: <Cpu size={18} /> },
+    { id: "resources", label: "Resources", icon: <BookOpen size={18} /> },
+    { id: "saved", label: "Saved Items", icon: <Heart size={18} /> }
   ];
 
-  const handleRegister = (eventId: string) => {
-    setUserRegistrations(prev => [...prev, eventId]);
-    toast.success("Successfully registered for event!");
+  const handleRegister = async (eventId: string) => {
+    try {
+      const { data, error } = await supabase.rpc('register_for_event', {
+        event_id: eventId
+      });
+      
+      if (error) throw error;
+      
+      if (data.success) {
+        setUserRegistrations(prev => [...prev, eventId]);
+        toast.success(data.message);
+        queryClient.invalidateQueries({ queryKey: ["events"] });
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error: any) {
+      toast.error("Failed to register for event");
+      console.error("Registration error:", error);
+    }
   };
 
-  const handleUnregister = (eventId: string) => {
-    setUserRegistrations(prev => prev.filter(id => id !== eventId));
-    toast.success("Unregistered from event");
+  const handleUnregister = async (eventId: string) => {
+    try {
+      const { data, error } = await supabase.rpc('unregister_from_event', {
+        event_id: eventId
+      });
+      
+      if (error) throw error;
+      
+      if (data.success) {
+        setUserRegistrations(prev => prev.filter(id => id !== eventId));
+        toast.success(data.message);
+        queryClient.invalidateQueries({ queryKey: ["events"] });
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error: any) {
+      toast.error("Failed to unregister from event");
+      console.error("Unregistration error:", error);
+    }
   };
 
-  const handleToggleSave = (itemId: string) => {
-    setSavedItems(prev => 
-      prev.includes(itemId) 
-        ? prev.filter(id => id !== itemId)
-        : [...prev, itemId]
-    );
-    toast.success(savedItems.includes(itemId) ? "Removed from saved" : "Added to saved");
+  const handleToggleSave = async (itemId: string, contentType: string = 'resource') => {
+    try {
+      const { data, error } = await supabase.rpc('toggle_saved_item', {
+        content_type: contentType,
+        content_id: itemId
+      });
+      
+      if (error) throw error;
+      
+      if (data.success) {
+        setSavedItems(prev => 
+          data.action === 'added' 
+            ? [...prev, itemId]
+            : prev.filter(id => id !== itemId)
+        );
+        toast.success(data.message);
+        queryClient.invalidateQueries({ queryKey: ["user-saved-items", user?.id] });
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error: any) {
+      toast.error("Failed to update saved items");
+      console.error("Save toggle error:", error);
+    }
   };
 
   if (loading) {
@@ -465,18 +655,22 @@ const UserDashboard = () => {
               </div>
               
               {/* Quick stats */}
-              <div className="grid grid-cols-3 gap-4 mt-6">
+              <div className="grid grid-cols-4 gap-4 mt-6">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-cyan-400">{userRegistrations.length}</div>
-                  <div className="text-xs text-white/60">Registered Events</div>
+                  <div className="text-2xl font-bold text-cyan-400">{events?.length || 0}</div>
+                  <div className="text-xs text-white/60">Total Events</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-purple-400">{savedItems.length}</div>
-                  <div className="text-xs text-white/60">Saved Items</div>
+                  <div className="text-2xl font-bold text-purple-400">{projects?.length || 0}</div>
+                  <div className="text-xs text-white/60">Projects</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-pink-400">{resources?.length || 0}</div>
-                  <div className="text-xs text-white/60">Available Resources</div>
+                  <div className="text-xs text-white/60">Resources</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-400">{savedItems.length}</div>
+                  <div className="text-xs text-white/60">Saved Items</div>
                 </div>
               </div>
             </GlassCard>
@@ -528,7 +722,7 @@ const UserDashboard = () => {
             >
               {activeTab === "events" && (
                 <div className="space-y-6">
-                  <h2 className="text-2xl font-bold text-white mb-6">Available Events</h2>
+                  <h2 className="text-2xl font-bold text-white mb-6">Upcoming Events</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {events?.map((event) => (
                       <EventCard
@@ -543,27 +737,19 @@ const UserDashboard = () => {
                 </div>
               )}
 
-              {activeTab === "saved" && (
+              {activeTab === "projects" && (
                 <div className="space-y-6">
-                  <h2 className="text-2xl font-bold text-white mb-6">Your Saved Items</h2>
-                  {savedItems.length === 0 ? (
-                    <GlassCard className="p-12 text-center">
-                      <Bookmark size={48} className="mx-auto text-white/40 mb-4" />
-                      <h3 className="text-xl font-medium text-white mb-2">No saved items yet</h3>
-                      <p className="text-white/60">Start exploring and save your favorite resources!</p>
-                    </GlassCard>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {resources?.filter(resource => savedItems.includes(resource.id)).map((resource) => (
-                        <ResourceCard
-                          key={resource.id}
-                          resource={resource}
-                          isSaved={true}
-                          onToggleSave={handleToggleSave}
-                        />
-                      ))}
-                    </div>
-                  )}
+                  <h2 className="text-2xl font-bold text-white mb-6">Featured Projects</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {projects?.map((project) => (
+                      <ProjectCard
+                        key={project.id}
+                        project={project}
+                        isSaved={savedItems.includes(project.id)}
+                        onToggleSave={(id: string) => handleToggleSave(id, 'project')}
+                      />
+                    ))}
+                  </div>
                 </div>
               )}
 
@@ -576,21 +762,44 @@ const UserDashboard = () => {
                         key={resource.id}
                         resource={resource}
                         isSaved={savedItems.includes(resource.id)}
-                        onToggleSave={handleToggleSave}
+                        onToggleSave={(id: string) => handleToggleSave(id, 'resource')}
                       />
                     ))}
                   </div>
                 </div>
               )}
 
-              {activeTab === "reminders" && (
+              {activeTab === "saved" && (
                 <div className="space-y-6">
-                  <h2 className="text-2xl font-bold text-white mb-6">Event Reminders</h2>
-                  <GlassCard className="p-8 text-center">
-                    <Bell size={48} className="mx-auto text-white/40 mb-4" />
-                    <h3 className="text-xl font-medium text-white mb-2">No reminders set</h3>
-                    <p className="text-white/60">Register for events to receive reminders!</p>
-                  </GlassCard>
+                  <h2 className="text-2xl font-bold text-white mb-6">Your Saved Items</h2>
+                  {savedItems.length === 0 ? (
+                    <GlassCard className="p-12 text-center">
+                      <Bookmark size={48} className="mx-auto text-white/40 mb-4" />
+                      <h3 className="text-xl font-medium text-white mb-2">No saved items yet</h3>
+                      <p className="text-white/60">Start exploring and save your favorite resources and projects!</p>
+                    </GlassCard>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Show saved resources */}
+                      {resources?.filter(resource => savedItems.includes(resource.id)).map((resource) => (
+                        <ResourceCard
+                          key={resource.id}
+                          resource={resource}
+                          isSaved={true}
+                          onToggleSave={(id: string) => handleToggleSave(id, 'resource')}
+                        />
+                      ))}
+                      {/* Show saved projects */}
+                      {projects?.filter(project => savedItems.includes(project.id)).map((project) => (
+                        <ProjectCard
+                          key={project.id}
+                          project={project}
+                          isSaved={true}
+                          onToggleSave={(id: string) => handleToggleSave(id, 'project')}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </motion.div>

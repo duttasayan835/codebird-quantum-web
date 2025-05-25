@@ -18,6 +18,7 @@ export const useOAuthProviders = () => {
       
       if (error) throw error;
     } catch (error: any) {
+      console.error("Google OAuth error:", error);
       toast.error(error.message || "Failed to sign in with Google");
     }
   };
@@ -33,6 +34,7 @@ export const useOAuthProviders = () => {
       
       if (error) throw error;
     } catch (error: any) {
+      console.error("GitHub OAuth error:", error);
       toast.error(error.message || "Failed to sign in with GitHub");
     }
   };
