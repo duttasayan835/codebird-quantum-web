@@ -536,7 +536,7 @@ const UserDashboard = () => {
       
       if (error) throw error;
       
-      const response = data as EventRegistrationResponse;
+      const response = data as unknown as EventRegistrationResponse;
       if (response.success) {
         setUserRegistrations(prev => [...prev, eventId]);
         toast.success(response.message);
@@ -558,7 +558,7 @@ const UserDashboard = () => {
       
       if (error) throw error;
       
-      const response = data as EventRegistrationResponse;
+      const response = data as unknown as EventRegistrationResponse;
       if (response.success) {
         setUserRegistrations(prev => prev.filter(id => id !== eventId));
         toast.success(response.message);
@@ -581,7 +581,7 @@ const UserDashboard = () => {
       
       if (error) throw error;
       
-      const response = data as SavedItemResponse;
+      const response = data as unknown as SavedItemResponse;
       if (response.success) {
         setSavedItems(prev => 
           response.action === 'added' 
