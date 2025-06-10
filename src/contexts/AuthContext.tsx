@@ -39,18 +39,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             
             // Only redirect on successful sign in, not token refresh
             if (event === 'SIGNED_IN') {
-              // Check if user is admin and redirect accordingly
-              const { data: profileData } = await supabase
-                .from("profiles")
-                .select("role")
-                .eq("id", currentSession.user.id)
-                .single();
-              
-              if (profileData?.role === 'admin') {
-                navigate("/admin");
-              } else {
-                navigate("/dashboard");
-              }
+              await handleRoleBasedRedirect(currentSession.user.id);
             }
           } catch (error) {
             console.error("Error during auth state change:", error);
@@ -82,6 +71,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       subscription.unsubscribe();
     };
   }, [navigate]);
+
+  const handleRoleBasedRedirect = async (userId: string) => {
+    try {
+      // Check if user is super admin first
+      const { data: superAdminData } = await supabase
+        .from("super_admins")
+        .select("id")
+        .eq("id", userId)
+        .single();
+
+      if (superAdminData) {
+        console.log("Super admin login, redirecting to admin panel");
+        navigate("/admin");
+        return;
+      }
+
+      // Check regular profile role
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", userId)
+        .single();
+      
+      if (profileData?.role === 'admin') {
+        console.log("Admin login, redirecting to admin panel");
+        navigate("/admin");
+      } else {
+        console.log("Regular user login, redirecting to dashboard");
+        navigate("/dashboard");
+      }
+    } catch (error) {
+      console.error("Error in role-based redirect:", error);
+      // Default to dashboard if role check fails
+      navigate("/dashboard");
+    }
+  };
 
   const fetchProfile = async (userId: string) => {
     try {
@@ -181,7 +206,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toast.success("Successfully signed out!");
     } catch (error) {
       console.error("Sign out error:", error);
-      throw error;
     }
   };
 

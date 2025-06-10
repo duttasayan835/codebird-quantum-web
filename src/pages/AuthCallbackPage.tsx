@@ -20,17 +20,38 @@ const AuthCallbackPage = () => {
         }
 
         if (data.session) {
-          toast.success("Successfully signed in!");
-          // Redirect based on user role
+          console.log("Session found, checking user role...");
+          
+          // Check if user is super admin first
+          const { data: superAdminData } = await supabase
+            .from("super_admins")
+            .select("id")
+            .eq("id", data.session.user.id)
+            .single();
+
+          if (superAdminData) {
+            console.log("Super admin detected, redirecting to admin panel");
+            toast.success("Welcome back, Super Admin!");
+            navigate("/admin");
+            return;
+          }
+
+          // Check regular profile role
           const { data: profile } = await supabase
             .from("profiles")
             .select("role")
             .eq("id", data.session.user.id)
             .single();
           
+          console.log("User profile:", profile);
+          
           if (profile?.role === 'admin') {
+            console.log("Admin user detected, redirecting to admin panel");
+            toast.success("Welcome back, Admin!");
             navigate("/admin");
           } else {
+            console.log("Regular user detected, redirecting to dashboard");
+            toast.success("Successfully signed in!");
             navigate("/dashboard");
           }
         } else {

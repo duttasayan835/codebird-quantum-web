@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -434,7 +435,7 @@ const AdminLogin = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/admin`
+          redirectTo: `${window.location.origin}/auth/callback`
         }
       });
       
@@ -453,7 +454,7 @@ const AdminLogin = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
         options: {
-          redirectTo: `${window.location.origin}/admin`
+          redirectTo: `${window.location.origin}/auth/callback`
         }
       });
       
