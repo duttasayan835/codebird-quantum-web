@@ -37,6 +37,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { DatabaseFunctionResponse, EventRegistrationResponse, SavedItemResponse } from "@/types/database";
 
 // Simplified 3D Floating Particles Background
 const SimpleFloatingParticles = () => {
@@ -535,12 +536,13 @@ const UserDashboard = () => {
       
       if (error) throw error;
       
-      if (data.success) {
+      const response = data as EventRegistrationResponse;
+      if (response.success) {
         setUserRegistrations(prev => [...prev, eventId]);
-        toast.success(data.message);
+        toast.success(response.message);
         queryClient.invalidateQueries({ queryKey: ["events"] });
       } else {
-        toast.error(data.message);
+        toast.error(response.message);
       }
     } catch (error: any) {
       toast.error("Failed to register for event");
@@ -556,12 +558,13 @@ const UserDashboard = () => {
       
       if (error) throw error;
       
-      if (data.success) {
+      const response = data as EventRegistrationResponse;
+      if (response.success) {
         setUserRegistrations(prev => prev.filter(id => id !== eventId));
-        toast.success(data.message);
+        toast.success(response.message);
         queryClient.invalidateQueries({ queryKey: ["events"] });
       } else {
-        toast.error(data.message);
+        toast.error(response.message);
       }
     } catch (error: any) {
       toast.error("Failed to unregister from event");
@@ -578,16 +581,17 @@ const UserDashboard = () => {
       
       if (error) throw error;
       
-      if (data.success) {
+      const response = data as SavedItemResponse;
+      if (response.success) {
         setSavedItems(prev => 
-          data.action === 'added' 
+          response.action === 'added' 
             ? [...prev, itemId]
             : prev.filter(id => id !== itemId)
         );
-        toast.success(data.message);
+        toast.success(response.message);
         queryClient.invalidateQueries({ queryKey: ["user-saved-items", user?.id] });
       } else {
-        toast.error(data.message);
+        toast.error(response.message);
       }
     } catch (error: any) {
       toast.error("Failed to update saved items");

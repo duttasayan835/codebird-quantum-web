@@ -9,6 +9,72 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      admin_invitations: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string | null
+          current_uses: number | null
+          expires_at: string
+          id: string
+          max_uses: number | null
+          used: boolean | null
+          used_by: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by?: string | null
+          current_uses?: number | null
+          expires_at: string
+          id?: string
+          max_uses?: number | null
+          used?: boolean | null
+          used_by?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          current_uses?: number | null
+          expires_at?: string
+          id?: string
+          max_uses?: number | null
+          used?: boolean | null
+          used_by?: string | null
+        }
+        Relationships: []
+      }
+      admin_profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          permissions: string[] | null
+          role: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          permissions?: string[] | null
+          role?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          permissions?: string[] | null
+          role?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       blog_posts: {
         Row: {
           author_id: string | null
@@ -437,27 +503,50 @@ export type Database = {
       }
       site_settings: {
         Row: {
-          description: string | null
+          created_at: string
           id: string
           setting_key: string
-          setting_value: Json
-          updated_at: string | null
+          setting_value: Json | null
+          updated_at: string
         }
         Insert: {
-          description?: string | null
+          created_at?: string
           id?: string
           setting_key: string
-          setting_value: Json
-          updated_at?: string | null
+          setting_value?: Json | null
+          updated_at?: string
         }
         Update: {
-          description?: string | null
+          created_at?: string
           id?: string
           setting_key?: string
-          setting_value?: Json
-          updated_at?: string | null
+          setting_value?: Json | null
+          updated_at?: string
         }
         Relationships: []
+      }
+      super_admins: {
+        Row: {
+          created_at: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "super_admins_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "admin_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       team_members: {
         Row: {
@@ -538,13 +627,42 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      fetch_admin_activity_logs: {
+        Args: { p_admin_id?: string }
+        Returns: {
+          id: string
+          admin_id: string
+          action_type: string
+          description: string
+          created_at: string
+          metadata: Json
+        }[]
+      }
+      generate_admin_activity_report: {
+        Args: { start_date?: string; end_date?: string }
+        Returns: {
+          admin_id: string
+          admin_email: string
+          admin_name: string
+          action_count: number
+          last_action: string
+        }[]
+      }
       is_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      is_super_admin: {
+        Args: { user_id: string }
+        Returns: boolean
+      }
       register_for_event: {
-        Args: { event_id: string }
-        Returns: Json
+        Args: { event_id: string } | { p_user_id: string; p_event_id: string }
+        Returns: string
+      }
+      send_admin_notification: {
+        Args: { admin_id: string; notification_type: string; message: string }
+        Returns: undefined
       }
       toggle_saved_item: {
         Args: { content_type: string; content_id: string }
