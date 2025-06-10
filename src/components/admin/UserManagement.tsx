@@ -5,17 +5,50 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { usePromoteToAdmin } from "@/hooks/useAdminRole";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Shield, Crown, Users, UserPlus } from "lucide-react";
+import { Shield, Crown, Users, UserPlus, Activity, Search } from "lucide-react";
 
 const UserManagement = () => {
   const [userEmail, setUserEmail] = useState("");
   const [superAdminEmail, setSuperAdminEmail] = useState("");
   const [inviteCode, setInviteCode] = useState("");
   const [isGeneratingCode, setIsGeneratingCode] = useState(false);
-  const promoteToAdminMutation = usePromoteToAdmin();
+  const [isPromotingAdmin, setIsPromotingAdmin] = useState(false);
+  const [isPromotingSuperAdmin, setIsPromotingSuperAdmin] = useState(false);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+
+  const searchUserByEmail = async (email: string) => {
+    if (!email.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.rpc('get_user_by_email', {
+        user_email: email
+      });
+
+      if (error) throw error;
+      setSearchResults(data || []);
+    } catch (error: any) {
+      console.error("Error searching user:", error);
+      toast.error("Error searching for user");
+    }
+  };
+
+  const logAdminActivity = async (actionType: string, description: string, targetId?: string) => {
+    try {
+      await supabase.rpc('log_admin_activity', {
+        p_action_type: actionType,
+        p_target_type: 'user',
+        p_target_id: targetId,
+        p_description: description
+      });
+    } catch (error) {
+      console.error("Failed to log admin activity:", error);
+    }
+  };
 
   const handlePromoteToAdmin = async () => {
     if (!userEmail.trim()) {
@@ -23,23 +56,43 @@ const UserManagement = () => {
       return;
     }
 
+    setIsPromotingAdmin(true);
     try {
-      // First, find the user by email in auth.users (we'll use the profiles table as proxy)
-      const { data: userData, error: userError } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("id", userEmail) // This won't work directly, we need a different approach
-        .single();
+      // First, find the user by email
+      const { data: userData, error: userError } = await supabase.rpc('get_user_by_email', {
+        user_email: userEmail
+      });
 
-      if (userError) {
+      if (userError) throw userError;
+      if (!userData || userData.length === 0) {
         toast.error("User not found");
         return;
       }
 
-      await promoteToAdminMutation.mutateAsync(userData.id);
+      const user = userData[0];
+      
+      // Update user role to admin
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ role: 'admin' })
+        .eq("id", user.user_id);
+
+      if (updateError) throw updateError;
+
+      // Log the activity
+      await logAdminActivity(
+        'promote_to_admin',
+        `Promoted user ${userEmail} to admin role`,
+        user.user_id
+      );
+
+      toast.success(`${user.full_name || userEmail} promoted to Admin successfully!`);
       setUserEmail("");
+      setSearchResults([]);
     } catch (error: any) {
-      toast.error(error.message || "Failed to promote user");
+      toast.error(error.message || "Failed to promote user to admin");
+    } finally {
+      setIsPromotingAdmin(false);
     }
   };
 
@@ -49,19 +102,53 @@ const UserManagement = () => {
       return;
     }
 
+    setIsPromotingSuperAdmin(true);
     try {
-      // For demo purposes, we'll use a simple approach
-      // In production, you'd want to implement proper user lookup
-      const { error } = await supabase
+      // First, find the user by email
+      const { data: userData, error: userError } = await supabase.rpc('get_user_by_email', {
+        user_email: superAdminEmail
+      });
+
+      if (userError) throw userError;
+      if (!userData || userData.length === 0) {
+        toast.error("User not found");
+        return;
+      }
+
+      const user = userData[0];
+
+      // First make them admin if they aren't already
+      if (user.role !== 'admin') {
+        const { error: adminError } = await supabase
+          .from("profiles")
+          .update({ role: 'admin' })
+          .eq("id", user.user_id);
+
+        if (adminError) throw adminError;
+      }
+
+      // Add to super_admins table
+      const { error: superAdminError } = await supabase
         .from("super_admins")
-        .insert({ id: superAdminEmail }); // This should be the actual user ID
+        .insert({ id: user.user_id });
 
-      if (error) throw error;
+      if (superAdminError && !superAdminError.message?.includes('duplicate')) {
+        throw superAdminError;
+      }
 
-      toast.success("User promoted to Super Admin successfully!");
+      // Log the activity
+      await logAdminActivity(
+        'promote_to_super_admin',
+        `Promoted user ${superAdminEmail} to super admin role`,
+        user.user_id
+      );
+
+      toast.success(`${user.full_name || superAdminEmail} promoted to Super Admin successfully!`);
       setSuperAdminEmail("");
     } catch (error: any) {
       toast.error(error.message || "Failed to promote to Super Admin");
+    } finally {
+      setIsPromotingSuperAdmin(false);
     }
   };
 
@@ -81,6 +168,12 @@ const UserManagement = () => {
         });
 
       if (error) throw error;
+
+      // Log the activity
+      await logAdminActivity(
+        'generate_invite_code',
+        `Generated admin invitation code: ${code}`
+      );
 
       setInviteCode(code);
       toast.success("Invite code generated successfully!");
@@ -111,17 +204,32 @@ const UserManagement = () => {
                 id="userEmail"
                 type="email"
                 value={userEmail}
-                onChange={(e) => setUserEmail(e.target.value)}
+                onChange={(e) => {
+                  setUserEmail(e.target.value);
+                  searchUserByEmail(e.target.value);
+                }}
                 placeholder="Enter user email"
                 className="bg-white/10 border-white/20 text-white"
               />
+              {searchResults.length > 0 && (
+                <div className="mt-2 p-2 bg-black/30 rounded border border-blue-500/20">
+                  {searchResults.map((user) => (
+                    <div key={user.user_id} className="text-sm text-white">
+                      <strong>{user.full_name || 'Unnamed User'}</strong>
+                      <br />
+                      <span className="text-gray-300">Role: {user.role}</span>
+                      {user.is_super_admin && <span className="text-purple-400 ml-2">(Super Admin)</span>}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
             <Button
               onClick={handlePromoteToAdmin}
-              disabled={promoteToAdminMutation.isPending}
+              disabled={isPromotingAdmin}
               className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
             >
-              {promoteToAdminMutation.isPending ? "Promoting..." : "Promote to Admin"}
+              {isPromotingAdmin ? "Promoting..." : "Promote to Admin"}
             </Button>
           </div>
         </Card>
@@ -146,9 +254,10 @@ const UserManagement = () => {
             </div>
             <Button
               onClick={handlePromoteToSuperAdmin}
+              disabled={isPromotingSuperAdmin}
               className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
             >
-              Promote to Super Admin
+              {isPromotingSuperAdmin ? "Promoting..." : "Promote to Super Admin"}
             </Button>
           </div>
         </Card>

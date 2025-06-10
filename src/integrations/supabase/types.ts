@@ -9,6 +9,47 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      admin_activity_logs: {
+        Row: {
+          action_type: string
+          admin_id: string | null
+          created_at: string | null
+          description: string
+          id: string
+          metadata: Json | null
+          target_id: string | null
+          target_type: string | null
+        }
+        Insert: {
+          action_type: string
+          admin_id?: string | null
+          created_at?: string | null
+          description: string
+          id?: string
+          metadata?: Json | null
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Update: {
+          action_type?: string
+          admin_id?: string | null
+          created_at?: string | null
+          description?: string
+          id?: string
+          metadata?: Json | null
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_activity_logs_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admin_invitations: {
         Row: {
           code: string
@@ -362,6 +403,7 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           created_at: string
+          email: string | null
           event_reminders: string[] | null
           full_name: string | null
           id: string
@@ -376,6 +418,7 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          email?: string | null
           event_reminders?: string[] | null
           full_name?: string | null
           id: string
@@ -390,6 +433,7 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          email?: string | null
           event_reminders?: string[] | null
           full_name?: string | null
           id?: string
@@ -648,6 +692,15 @@ export type Database = {
           last_action: string
         }[]
       }
+      get_user_by_email: {
+        Args: { user_email: string }
+        Returns: {
+          user_id: string
+          full_name: string
+          role: string
+          is_super_admin: boolean
+        }[]
+      }
       is_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
@@ -655,6 +708,16 @@ export type Database = {
       is_super_admin: {
         Args: { user_id: string }
         Returns: boolean
+      }
+      log_admin_activity: {
+        Args: {
+          p_action_type: string
+          p_target_type?: string
+          p_target_id?: string
+          p_description?: string
+          p_metadata?: Json
+        }
+        Returns: undefined
       }
       register_for_event: {
         Args: { event_id: string } | { p_user_id: string; p_event_id: string }
