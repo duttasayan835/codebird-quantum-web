@@ -6,8 +6,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import UserManagement from "@/components/admin/UserManagement";
-import EventsManagement from "@/components/admin/EventsManagement";
-import ContentManagement from "@/components/admin/ContentManagement";
 import SuperAdminPanel from "@/components/admin/SuperAdminPanel";
 import { 
   Users, 
@@ -57,22 +55,14 @@ const AdminPage = () => {
           </p>
         </motion.div>
 
-        <Tabs defaultValue={isSuperAdmin ? "super-admin" : "events"} className="w-full">
-          <TabsList className={`grid w-full ${isSuperAdmin ? 'grid-cols-5' : 'grid-cols-3'} bg-black/20`}>
+        <Tabs defaultValue={isSuperAdmin ? "super-admin" : "users"} className="w-full">
+          <TabsList className={`grid w-full ${isSuperAdmin ? 'grid-cols-2' : 'grid-cols-1'} bg-black/20`}>
             {isSuperAdmin && (
               <TabsTrigger value="super-admin" className="flex items-center gap-2">
                 <Crown className="w-4 h-4" />
                 Super Admin
               </TabsTrigger>
             )}
-            <TabsTrigger value="events" className="flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              Events
-            </TabsTrigger>
-            <TabsTrigger value="content" className="flex items-center gap-2">
-              <FileText className="w-4 h-4" />
-              Content
-            </TabsTrigger>
             <TabsTrigger value="users" className="flex items-center gap-2">
               <Users className="w-4 h-4" />
               Users
@@ -84,14 +74,6 @@ const AdminPage = () => {
               <SuperAdminPanel />
             </TabsContent>
           )}
-
-          <TabsContent value="events">
-            <EventsManagement />
-          </TabsContent>
-
-          <TabsContent value="content">
-            <ContentManagement />
-          </TabsContent>
 
           <TabsContent value="users">
             <UserManagement />

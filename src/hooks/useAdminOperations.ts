@@ -21,7 +21,6 @@ export const useAdminOperations = () => {
 
   const blockUser = useMutation({
     mutationFn: async (userId: string) => {
-      // This would require adding a blocked column to profiles table
       const { error } = await supabase
         .from("profiles")
         .update({ blocked: true })

@@ -11,3 +11,10 @@ export interface EventRegistrationResponse extends DatabaseFunctionResponse {}
 export interface SavedItemResponse extends DatabaseFunctionResponse {
   action: 'added' | 'removed';
 }
+
+// Admin operations response types
+export interface AdminOperationResponse {
+  success: boolean;
+  message: string;
+  action?: 'added' | 'removed' | 'blocked' | 'unblocked';
+}

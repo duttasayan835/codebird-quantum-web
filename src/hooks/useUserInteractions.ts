@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { SavedItemResponse } from "@/types/database";
 
 export const useEventRegistration = () => {
   const { user } = useAuth();
@@ -87,7 +88,7 @@ export const useProjectLikes = () => {
       });
       
       if (error) throw error;
-      return data;
+      return data as SavedItemResponse;
     },
     onSuccess: (data) => {
       toast.success(data.action === 'added' ? "Project liked!" : "Project unliked!");
@@ -109,7 +110,7 @@ export const useProjectLikes = () => {
       });
       
       if (error) throw error;
-      return data;
+      return data as SavedItemResponse;
     },
     onSuccess: (data) => {
       toast.success(data.action === 'added' ? "Resource saved!" : "Resource unsaved!");
