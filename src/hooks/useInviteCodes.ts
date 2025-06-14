@@ -8,12 +8,16 @@ export const useInviteCodes = () => {
 
   const validateInviteCode = useMutation({
     mutationFn: async (code: string) => {
-      const { data, error } = await supabase.rpc('validate_invite_code', {
-        invite_code: code
-      });
+      const { data, error } = await supabase
+        .from("admin_invitations")
+        .select("*")
+        .eq("code", code)
+        .eq("used", false)
+        .gt("expires_at", new Date().toISOString())
+        .single();
       
       if (error) throw error;
-      return data[0];
+      return data;
     },
     onError: (error: any) => {
       toast.error(error.message || "Failed to validate invite code");
@@ -22,13 +26,34 @@ export const useInviteCodes = () => {
 
   const useInviteCode = useMutation({
     mutationFn: async ({ code, userId }: { code: string; userId: string }) => {
-      const { data, error } = await supabase.rpc('use_invite_code', {
-        invite_code: code,
-        user_id: userId
-      });
+      // First validate the code
+      const { data: inviteData, error: fetchError } = await supabase
+        .from("admin_invitations")
+        .select("*")
+        .eq("code", code)
+        .eq("used", false)
+        .gt("expires_at", new Date().toISOString())
+        .single();
       
-      if (error) throw error;
-      return data;
+      if (fetchError) throw fetchError;
+      
+      // Mark as used
+      const { error: updateError } = await supabase
+        .from("admin_invitations")
+        .update({ used: true, used_by: userId })
+        .eq("id", inviteData.id);
+      
+      if (updateError) throw updateError;
+      
+      // Update user role to admin (since these are admin invitations)
+      const { error: roleError } = await supabase
+        .from("profiles")
+        .update({ role: "admin" })
+        .eq("id", userId);
+      
+      if (roleError) throw roleError;
+      
+      return { success: true };
     },
     onSuccess: () => {
       toast.success("Invite code used successfully! Your role has been updated.");
@@ -46,10 +71,9 @@ export const useInviteCodes = () => {
       expiresAt.setDate(expiresAt.getDate() + expiresInDays);
       
       const { error } = await supabase
-        .from("invite_codes")
+        .from("admin_invitations")
         .insert({
           code,
-          role,
           expires_at: expiresAt.toISOString()
         });
       
@@ -69,7 +93,7 @@ export const useInviteCodes = () => {
     queryKey: ["invite-codes"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("invite_codes")
+        .from("admin_invitations")
         .select("*")
         .order("created_at", { ascending: false });
       

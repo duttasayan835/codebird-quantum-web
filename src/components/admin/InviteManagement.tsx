@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useInviteCodes } from "@/hooks/useInviteCodes";
 import { Gift, Copy, Clock, CheckCircle, XCircle } from "lucide-react";
@@ -56,24 +55,11 @@ const InviteManagement = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-white">
             <Gift className="w-5 h-5 text-purple-400" />
-            Create New Invite Code
+            Create New Admin Invite Code
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <Label htmlFor="role" className="text-white">Role</Label>
-              <Select value={newInvite.role} onValueChange={(value: 'admin' | 'user') => setNewInvite(prev => ({ ...prev, role: value }))}>
-                <SelectTrigger className="bg-white/10 border-white/20 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="user">User</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="expiry" className="text-white">Expires in (days)</Label>
               <Input
@@ -93,7 +79,7 @@ const InviteManagement = () => {
                 disabled={createInviteCode.isPending}
                 className="w-full bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-600 hover:to-cyan-600"
               >
-                {createInviteCode.isPending ? "Creating..." : "Create Invite"}
+                {createInviteCode.isPending ? "Creating..." : "Create Admin Invite"}
               </Button>
             </div>
           </div>
@@ -126,10 +112,10 @@ const InviteManagement = () => {
                         <code className="bg-black/30 px-3 py-1 rounded text-cyan-400 font-mono">
                           {invite.code}
                         </code>
-                        <Badge variant={invite.role === 'admin' ? 'destructive' : 'secondary'}>
-                          {invite.role}
+                        <Badge variant="destructive">
+                          Admin
                         </Badge>
-                        {invite.is_used ? (
+                        {invite.used ? (
                           <Badge variant="outline" className="text-green-400 border-green-400">
                             <CheckCircle className="w-3 h-3 mr-1" />
                             Used
