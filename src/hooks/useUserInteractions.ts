@@ -88,7 +88,7 @@ export const useProjectLikes = () => {
       });
       
       if (error) throw error;
-      return data as SavedItemResponse;
+      return data as unknown as SavedItemResponse;
     },
     onSuccess: (data) => {
       toast.success(data.action === 'added' ? "Project liked!" : "Project unliked!");
@@ -110,7 +110,7 @@ export const useProjectLikes = () => {
       });
       
       if (error) throw error;
-      return data as SavedItemResponse;
+      return data as unknown as SavedItemResponse;
     },
     onSuccess: (data) => {
       toast.success(data.action === 'added' ? "Resource saved!" : "Resource unsaved!");
