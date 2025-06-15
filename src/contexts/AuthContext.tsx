@@ -74,6 +74,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const handleRoleBasedRedirect = async (userId: string) => {
     try {
+      // Check if this is an admin login session
+      const isAdminLogin = localStorage.getItem("adminAuthenticated") === "true";
+      
       // Check if user is super admin first
       const { data: superAdminData } = await supabase
         .from("super_admins")
@@ -83,6 +86,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (superAdminData) {
         console.log("Super admin login, redirecting to admin panel");
+        localStorage.setItem("adminAuthenticated", "true");
         navigate("/admin");
         return;
       }
@@ -94,17 +98,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .eq("id", userId)
         .single();
       
-      if (profileData?.role === 'admin') {
+      if (profileData?.role === 'admin' || isAdminLogin) {
         console.log("Admin login, redirecting to admin panel");
+        localStorage.setItem("adminAuthenticated", "true");
         navigate("/admin");
       } else {
         console.log("Regular user login, redirecting to dashboard");
+        // Clear admin auth if it exists for regular users
+        localStorage.removeItem("adminAuthenticated");
         navigate("/dashboard");
       }
     } catch (error) {
       console.error("Error in role-based redirect:", error);
-      // Default to dashboard if role check fails
-      navigate("/dashboard");
+      // Check if admin login was intended
+      const isAdminLogin = localStorage.getItem("adminAuthenticated") === "true";
+      if (isAdminLogin) {
+        navigate("/admin");
+      } else {
+        navigate("/dashboard");
+      }
     }
   };
 
