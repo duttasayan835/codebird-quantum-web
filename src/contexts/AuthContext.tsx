@@ -198,14 +198,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     try {
+      setLoading(true);
+      
+      // Clear local state first
+      setSession(null);
+      setUser(null);
+      setProfile(null);
+      
+      // Clear any admin authentication
+      localStorage.removeItem("adminAuthenticated");
+      
+      // Sign out from Supabase
       const { error } = await supabase.auth.signOut();
+      
       if (error) {
-        toast.error(error.message);
-        throw error;
+        console.error("Sign out error:", error);
+        toast.error("Error signing out: " + error.message);
+      } else {
+        toast.success("Successfully signed out!");
       }
-      toast.success("Successfully signed out!");
+      
+      // Navigate to home page regardless of error
+      navigate("/");
+      
     } catch (error) {
       console.error("Sign out error:", error);
+      toast.error("An unexpected error occurred during sign out");
+      // Still navigate to home even if there's an error
+      navigate("/");
+    } finally {
+      setLoading(false);
     }
   };
 

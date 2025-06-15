@@ -27,8 +27,8 @@ const Navbar = () => {
 
   const handleSignOut = async () => {
     try {
-      await signOut();
       setDropdownOpen(false);
+      await signOut();
     } catch (error) {
       console.error('Error signing out:', error);
     }
@@ -37,6 +37,7 @@ const Navbar = () => {
   const handleAdminLogout = () => {
     localStorage.removeItem("adminAuthenticated");
     setIsAdmin(false);
+    setDropdownOpen(false);
     navigate("/");
   };
 
@@ -235,10 +236,7 @@ const Navbar = () => {
               Admin Dashboard
             </Link>
             <button
-              onClick={() => {
-                handleAdminLogout();
-                setDropdownOpen(false);
-              }}
+              onClick={handleAdminLogout}
               className="flex items-center gap-2 w-full px-4 py-3 text-sm hover:bg-red-500/10 transition-colors text-red-400"
             >
               <LogOut size={16} />
